@@ -6,6 +6,8 @@ import {
 } from "./types";
 import { createReadStream, createWriteStream, promises as fs } from "fs";
 
+import { AIService } from "../ai/services/ai.js";
+import { TagService } from "./tags/service.js";
 import { createInterface } from "readline";
 import { randomUUID } from "crypto";
 
@@ -15,9 +17,11 @@ import { randomUUID } from "crypto";
 export class NodeStorage {
   private readonly dataPath: string;
   private nodes: Map<string, Node> = new Map();
+  private tagService: TagService;
 
-  constructor(dataPath: string) {
+  constructor(dataPath: string, aiService: AIService) {
     this.dataPath = dataPath;
+    this.tagService = new TagService(aiService);
   }
 
   /**
@@ -67,6 +71,11 @@ export class NodeStorage {
     };
 
     try {
+      // Generate tags if none provided
+      if (!options.tags || options.tags.length === 0) {
+        node.tags = await this.tagService.generateTags(node);
+      }
+
       // Append to file
       await fs.appendFile(this.dataPath, JSON.stringify(node) + "\n", "utf-8");
 
@@ -95,6 +104,11 @@ export class NodeStorage {
   async update(id: string, updates: Partial<Node>): Promise<Node> {
     const node = await this.get(id);
     const updatedNode = { ...node, ...updates };
+
+    // Regenerate tags if content changed
+    if (updates.raw_text) {
+      updatedNode.tags = await this.tagService.generateTags(updatedNode);
+    }
 
     try {
       // Rewrite the entire file with the updated node
@@ -155,5 +169,12 @@ export class NodeStorage {
    */
   async count(): Promise<number> {
     return this.nodes.size;
+  }
+
+  /**
+   * Update tag service configuration
+   */
+  updateTagConfig(config: Parameters<TagService["updateConfig"]>[0]): void {
+    this.tagService.updateConfig(config);
   }
 }
