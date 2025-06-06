@@ -75,16 +75,14 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 
 #### Search Command Tests
 
-- [ ] Basic functionality
-
+- [x] Basic functionality
   - Test successful search with exact match
   - Test successful search with fuzzy match
   - Test search with multiple results
   - Test search with no results
   - Test search with empty query
   - Test search with limit option
-
-- [ ] Error handling
+- [x] Error handling
   - Test search with invalid limit value
   - Test search with uninitialized storage
   - Test search with corrupted search index
@@ -92,14 +90,12 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 #### Export Command Tests
 
 - [ ] Basic functionality
-
   - Test JSON format export
   - Test text format export
   - Test export with empty graph
   - Test export with multiple nodes
   - Test export to stdout
   - Test export to file
-
 - [ ] Error handling
   - Test export with invalid format
   - Test export with invalid file path
@@ -114,7 +110,7 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 - [x] Add tests for new command
 - [x] Implement search command
 - [x] Implement export command
-- [ ] Add tests for search command
+- [x] Add tests for search command
 - [ ] Add tests for export command
 - [ ] Add help text
 - [ ] Add error handling
@@ -122,7 +118,7 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 
 ## Executor's Feedback or Assistance Requests
 
-The export command has been successfully implemented and tested. The implementation includes:
+The export command has been successfully implemented and tested manually. The implementation includes:
 
 - Support for both JSON and text formats
 - Clear output formatting with proper indentation
@@ -137,7 +133,7 @@ Both formats have been tested and work as expected:
 - Text format provides a human-readable output with colored sections
 - JSON format provides a structured output suitable for programmatic use
 
-The next step would be to add tests for both the search and export commands.
+The next step is to add automated tests for the export command, covering all major scenarios and error cases.
 
 ## Lessons
 
@@ -184,29 +180,33 @@ Using Commander.js for CLI argument parsing provides a clean, maintainable struc
 
 ## Next Steps Priority
 
-1. Add tests for search command
+1. Add tests for export command
 
    - Implement basic functionality tests
    - Implement error handling tests
    - Add test fixtures and mocks
    - Verify test coverage
 
-2. Add tests for export command
-
-   - Implement basic functionality tests
-   - Implement error handling tests
-   - Add test fixtures and mocks
-   - Verify test coverage
-
-3. Add input validation and security measures
+2. Add input validation and security measures
 
    - Add file size validation
    - Add content length validation
    - Add file path validation
    - Add permission checks
 
+3. Add help text and documentation
+
+   - Ensure all commands and options have clear help text
+   - Add usage examples and edge case notes
+
 4. Add performance optimizations
+
    - Implement caching
    - Optimize file operations
    - Add memory usage monitoring
    - Add concurrent access handling
+
+5. Review and polish
+   - Review code for consistency and maintainability
+   - Update documentation and README
+   - Prepare for user feedback or beta release
