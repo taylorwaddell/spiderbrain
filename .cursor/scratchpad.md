@@ -62,7 +62,7 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 
 ### 4. Export Command
 
-- [ ] `spiderbrain export [--format json|text]` or `spiderbrain -e [--format json|text]`
+- [x] `spiderbrain export [--format json|text]` or `spiderbrain -e [--format json|text]`
   - Success: Can export entire graph
   - Success: Supports different output formats
   - Success: Shows clear export confirmation
@@ -71,6 +71,41 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
   - Success: Handles file write errors gracefully
   - Success: Provides progress indication for large exports
 
+### 5. Test Coverage
+
+#### Search Command Tests
+
+- [ ] Basic functionality
+
+  - Test successful search with exact match
+  - Test successful search with fuzzy match
+  - Test search with multiple results
+  - Test search with no results
+  - Test search with empty query
+  - Test search with limit option
+
+- [ ] Error handling
+  - Test search with invalid limit value
+  - Test search with uninitialized storage
+  - Test search with corrupted search index
+
+#### Export Command Tests
+
+- [ ] Basic functionality
+
+  - Test JSON format export
+  - Test text format export
+  - Test export with empty graph
+  - Test export with multiple nodes
+  - Test export to stdout
+  - Test export to file
+
+- [ ] Error handling
+  - Test export with invalid format
+  - Test export with invalid file path
+  - Test export with insufficient permissions
+  - Test export with uninitialized storage
+
 ## Project Status Board
 
 - [x] Set up CLI project structure
@@ -78,8 +113,8 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 - [x] Implement new node command
 - [x] Add tests for new command
 - [x] Implement search command
+- [x] Implement export command
 - [ ] Add tests for search command
-- [ ] Implement export command
 - [ ] Add tests for export command
 - [ ] Add help text
 - [ ] Add error handling
@@ -87,16 +122,22 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 
 ## Executor's Feedback or Assistance Requests
 
-The search command has been successfully implemented and tested. The implementation includes:
+The export command has been successfully implemented and tested. The implementation includes:
 
-- Basic search functionality using MiniSearch
-- Support for fuzzy matching
-- Clear result display with node details
-- Proper error handling
-- Loading of search index when needed
-- Support for limiting results
+- Support for both JSON and text formats
+- Clear output formatting with proper indentation
+- Progress indication during export
+- Proper error handling for unsupported formats
+- Support for output to file or stdout
+- Empty graph handling
+- Type-safe metadata handling
 
-The command works as expected, successfully finding nodes by their content and metadata. The next step would be to implement the export command.
+Both formats have been tested and work as expected:
+
+- Text format provides a human-readable output with colored sections
+- JSON format provides a structured output suitable for programmatic use
+
+The next step would be to add tests for both the search and export commands.
 
 ## Lessons
 
@@ -143,35 +184,28 @@ Using Commander.js for CLI argument parsing provides a clean, maintainable struc
 
 ## Next Steps Priority
 
-1. Implement export command with format support
+1. Add tests for search command
 
-   - Add JSON format export
-   - Add text format export
-   - Add progress indication
-   - Add error handling
+   - Implement basic functionality tests
+   - Implement error handling tests
+   - Add test fixtures and mocks
+   - Verify test coverage
 
-2. Add tests for search command
+2. Add tests for export command
 
-   - Test basic search functionality
-   - Test fuzzy matching
-   - Test result limiting
-   - Test error conditions
+   - Implement basic functionality tests
+   - Implement error handling tests
+   - Add test fixtures and mocks
+   - Verify test coverage
 
-3. Add tests for export command
-
-   - Test JSON format export
-   - Test text format export
-   - Test empty graph handling
-   - Test error conditions
-
-4. Add input validation and security measures
+3. Add input validation and security measures
 
    - Add file size validation
    - Add content length validation
    - Add file path validation
    - Add permission checks
 
-5. Add performance optimizations
+4. Add performance optimizations
    - Implement caching
    - Optimize file operations
    - Add memory usage monitoring
