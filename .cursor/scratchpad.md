@@ -67,6 +67,9 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
   - Success: Supports different output formats
   - Success: Shows clear export confirmation
   - Success: Handles empty graph gracefully
+  - Success: Formats output appropriately for each format type
+  - Success: Handles file write errors gracefully
+  - Success: Provides progress indication for large exports
 
 ## Project Status Board
 
@@ -75,7 +78,9 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 - [x] Implement new node command
 - [x] Add tests for new command
 - [x] Implement search command
+- [ ] Add tests for search command
 - [ ] Implement export command
+- [ ] Add tests for export command
 - [ ] Add help text
 - [ ] Add error handling
 - [ ] Add test coverage
@@ -138,8 +143,36 @@ Using Commander.js for CLI argument parsing provides a clean, maintainable struc
 
 ## Next Steps Priority
 
-1. Add basic tests for the new command
-2. Implement the search command
-3. Add input validation and security measures
-4. Implement the export command
+1. Implement export command with format support
+
+   - Add JSON format export
+   - Add text format export
+   - Add progress indication
+   - Add error handling
+
+2. Add tests for search command
+
+   - Test basic search functionality
+   - Test fuzzy matching
+   - Test result limiting
+   - Test error conditions
+
+3. Add tests for export command
+
+   - Test JSON format export
+   - Test text format export
+   - Test empty graph handling
+   - Test error conditions
+
+4. Add input validation and security measures
+
+   - Add file size validation
+   - Add content length validation
+   - Add file path validation
+   - Add permission checks
+
 5. Add performance optimizations
+   - Implement caching
+   - Optimize file operations
+   - Add memory usage monitoring
+   - Add concurrent access handling
