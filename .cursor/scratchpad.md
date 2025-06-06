@@ -4,6 +4,151 @@
 
 SpiderBrain is a tool designed to help users manage and navigate through their knowledge base by creating a graph of interconnected nodes. For the MVP, we're focusing on three core commands that provide the essential functionality: creating new nodes, searching the knowledge base, and exporting the graph.
 
+## AI Implementation Plan
+
+### Architecture Overview
+
+1. Core Components:
+
+   - `AIModel` interface for model abstraction
+   - `OllamaModel` implementation for local Ollama models
+   - `AIService` for managing model interactions
+   - `TagGenerator` for AI-powered tag generation
+
+2. Directory Structure:
+
+```
+src/
+├── ai/
+│   ├── models/
+│   │   ├── base.ts        # AIModel interface
+│   │   ├── ollama.ts      # OllamaModel implementation
+│   │   └── index.ts       # Model exports
+│   ├── services/
+│   │   ├── ai-service.ts  # AIService implementation
+│   │   └── index.ts       # Service exports
+│   └── generators/
+│       ├── tagger.ts      # TagGenerator implementation
+│       └── index.ts       # Generator exports
+```
+
+### Implementation Steps
+
+1. Core Interfaces and Types
+
+   - [ ] Define `AIModel` interface
+   - [ ] Define model configuration types
+   - [ ] Define response types
+   - [ ] Define error types
+
+2. Ollama Integration
+
+   - [ ] Implement `OllamaModel` class
+   - [ ] Add Ollama API client
+   - [ ] Add model configuration
+   - [ ] Add error handling
+   - [ ] Add retry logic
+
+3. AI Service
+
+   - [ ] Implement `AIService` class
+   - [ ] Add model management
+   - [ ] Add request queuing
+   - [ ] Add caching
+   - [ ] Add error handling
+
+4. Tag Generation
+
+   - [ ] Implement `TagGenerator` class
+   - [ ] Add prompt templates
+   - [ ] Add tag extraction
+   - [ ] Add tag validation
+   - [ ] Add caching
+
+5. CLI Integration
+
+   - [ ] Add AI configuration options
+   - [ ] Add model selection
+   - [ ] Add tag generation to new command
+   - [ ] Add tag suggestions to search
+
+6. Testing
+   - [ ] Add unit tests for models
+   - [ ] Add unit tests for services
+   - [ ] Add unit tests for generators
+   - [ ] Add integration tests
+   - [ ] Add mock Ollama server
+
+### Dependencies
+
+```json
+{
+  "dependencies": {
+    "ollama": "^0.1.0", // Ollama API client
+    "p-queue": "^7.3.0", // Request queuing
+    "node-fetch": "^3.3.0", // HTTP client
+    "zod": "^3.22.0" // Runtime type checking
+  }
+}
+```
+
+### Key Design Decisions
+
+1. Model Abstraction
+
+   - Use interface-based design for model abstraction
+   - Allow easy addition of new model implementations
+   - Support model-specific configuration
+
+2. Error Handling
+
+   - Define clear error types
+   - Implement retry logic for transient failures
+   - Provide meaningful error messages
+
+3. Performance
+
+   - Implement request queuing
+   - Add response caching
+   - Support batch processing
+
+4. Configuration
+
+   - Support model-specific settings
+   - Allow runtime model switching
+   - Support environment variables
+
+5. Testing
+   - Mock Ollama server for testing
+   - Support offline testing
+   - Add performance benchmarks
+
+### Success Criteria
+
+1. Core Functionality
+
+   - [ ] Can connect to local Ollama instance
+   - [ ] Can generate tags for new nodes
+   - [ ] Can suggest tags for search
+   - [ ] Handles errors gracefully
+
+2. Performance
+
+   - [ ] Response time < 1s for tag generation
+   - [ ] Memory usage < 100MB
+   - [ ] Supports concurrent requests
+
+3. Reliability
+
+   - [ ] Handles network errors
+   - [ ] Handles model errors
+   - [ ] Provides fallback options
+
+4. Extensibility
+   - [ ] Easy to add new models
+   - [ ] Easy to modify prompts
+   - [ ] Easy to add new features
+
 ## Key Challenges and Analysis
 
 1. Command Structure
@@ -110,10 +255,13 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 - [x] Implement export command
 - [x] Add tests for search command
 - [ ] Add tests for export command
-  - [x] JSON format export tests
-  - [ ] Empty graph handling tests
-  - [ ] Multiple nodes export tests
-  - [ ] Error handling tests
+- [ ] Implement AI functionality
+  - [ ] Core interfaces and types
+  - [ ] Ollama integration
+  - [ ] AI service
+  - [ ] Tag generation
+  - [ ] CLI integration
+  - [ ] Testing
 - [ ] Add help text
 - [ ] Add error handling
 - [ ] Add test coverage
