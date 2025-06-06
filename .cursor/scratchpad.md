@@ -89,18 +89,16 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 
 #### Export Command Tests
 
-- [ ] Basic functionality
-  - Test JSON format export
-  - Test text format export
-  - Test export with empty graph
-  - Test export with multiple nodes
-  - Test export to stdout
-  - Test export to file
+- [x] Basic functionality
+  - [x] Test JSON format export to stdout
+  - [x] Test JSON format export to file
+  - [ ] Test export with empty graph
+  - [ ] Test export with multiple nodes
 - [ ] Error handling
-  - Test export with invalid format
-  - Test export with invalid file path
-  - Test export with insufficient permissions
-  - Test export with uninitialized storage
+  - [ ] Test export with invalid format
+  - [ ] Test export with invalid file path
+  - [ ] Test export with insufficient permissions
+  - [ ] Test export with uninitialized storage
 
 ## Project Status Board
 
@@ -112,6 +110,10 @@ SpiderBrain is a tool designed to help users manage and navigate through their k
 - [x] Implement export command
 - [x] Add tests for search command
 - [ ] Add tests for export command
+  - [x] JSON format export tests
+  - [ ] Empty graph handling tests
+  - [ ] Multiple nodes export tests
+  - [ ] Error handling tests
 - [ ] Add help text
 - [ ] Add error handling
 - [ ] Add test coverage
@@ -135,6 +137,16 @@ Both formats have been tested and work as expected:
 
 The next step is to add automated tests for the export command, covering all major scenarios and error cases.
 
+Current Progress:
+
+- Successfully implemented and tested JSON format export to stdout
+- Successfully implemented and tested JSON format export to file
+- Next steps:
+  1. Implement test for empty graph handling
+  2. Implement test for multiple nodes export
+  3. Implement error handling tests
+  4. Add comprehensive test coverage
+
 ## Lessons
 
 Using Commander.js for CLI argument parsing provides a clean, maintainable structure
@@ -146,6 +158,8 @@ Using Commander.js for CLI argument parsing provides a clean, maintainable struc
 - Using explicit flags for file input makes the command behavior more predictable
 - Mocking dependencies in tests helps isolate functionality
 - Cleaning up test files prevents test pollution
+- When testing file system operations, it's important to mock both the file system and path modules
+- For console output testing, consider normalizing the output to handle ANSI color codes and newlines
 
 ## Review Findings
 
