@@ -116,7 +116,7 @@ program
           chalk.green(`Node added successfully with ID: ${node.id}`)
         );
       } catch (error) {
-        spinner.fail(chalk.red("Failed to add node"));
+        spinner.fail(chalk.red("Failed to add node", error));
         if (error instanceof Error) {
           console.error(chalk.red(error.message));
         } else {
