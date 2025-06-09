@@ -967,3 +967,92 @@ The next step is to test the tag generation with the new model. Please run the `
 - Consider model size and performance characteristics when selecting models
 - Document model requirements and dependencies clearly
 - Adjust model parameters based on the specific task requirements
+
+# Project Progress and Next Steps
+
+## Background and Motivation
+
+We've successfully:
+
+1. Fixed the model initialization issue
+2. Improved tag generation with better prompts and filtering
+3. Migrated to phi4-mini with optimized parameters
+4. Achieved working tag generation functionality
+
+## Key Challenges and Analysis
+
+1. Current State:
+
+   - Basic node creation with tags is working
+   - Model configuration is optimized for tag generation
+   - Error handling is improved
+   - Data storage is fixed to ./data directory
+   - Model selection is hardcoded to phi4-mini
+
+2. Potential Next Steps:
+   - Implement node search functionality
+   - Add node update/delete capabilities
+   - Improve error handling and user feedback
+   - Add configuration management
+   - Implement export functionality
+   - Add user customization features:
+     a. Custom data directory selection
+     b. Dynamic model selection from available Ollama models
+
+## High-level Task Breakdown
+
+1. [ ] Add User Customization
+
+   - Success Criteria: Users can configure their preferred settings
+   - Dependencies: None
+   - Implementation:
+     a. Create configuration file for user preferences
+     b. Add commands to set/get configuration
+     c. Implement data directory selection
+     d. Add dynamic model selection from Ollama list
+
+2. [ ] Implement Node Search
+
+   - Success Criteria: Users can search nodes by content and tags
+   - Dependencies: None
+   - Implementation: Enhance NodeSearch class with semantic and tag-based search
+
+3. [ ] Add Node Management
+
+   - Success Criteria: Users can update and delete nodes
+   - Dependencies: None
+   - Implementation: Add update and delete commands to CLI
+
+4. [ ] Improve Error Handling
+   - Success Criteria: Better error messages and recovery options
+   - Dependencies: None
+   - Implementation: Enhance error handling across all commands
+
+## Project Status Board
+
+- [ ] Task 1: Add User Customization
+  - [ ] Create configuration system
+  - [ ] Implement data directory selection
+  - [ ] Add dynamic model selection
+- [ ] Task 2: Implement Node Search
+- [ ] Task 3: Add Node Management
+- [ ] Task 4: Improve Error Handling
+
+## Executor's Feedback or Assistance Requests
+
+The core functionality is now working well. We should prioritize user customization to make the system more flexible and user-friendly. This includes:
+
+1. Allowing users to choose their data storage location
+2. Enabling users to select from their available Ollama models
+3. Making the configuration persistent and easily modifiable
+
+## Lessons
+
+- Start with core functionality and iterate
+- Optimize model parameters for specific tasks
+- Use clear, explicit prompts for AI interactions
+- Implement robust error handling from the start
+- Keep configuration flexible and well-documented
+- Make user customization a priority for better user experience
+- Consider using a configuration file for persistent settings
+- Provide clear feedback about available options (e.g., models, directories)
