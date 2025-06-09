@@ -14,19 +14,21 @@ import { program } from "commander";
 // Initialize AI service
 const aiService = new AIService({
   defaultModel: {
-    model: "llama2",
+    model: "phi4-mini",
     temperature: 0.0,
-    max_tokens: 50,
+    max_tokens: 100,
     presence_penalty: 0.3,
-    frequency_penalty: 0.5,
+    frequency_penalty: 0.1,
+    stop: ["\n", ".", "!"],
   },
   models: {
-    llama2: {
-      model: "llama2",
+    "phi4-mini": {
+      model: "phi4-mini",
       temperature: 0.0,
-      max_tokens: 50,
+      max_tokens: 100,
       presence_penalty: 0.3,
-      frequency_penalty: 0.5,
+      frequency_penalty: 0.1,
+      stop: ["\n", ".", "!"],
     },
   },
   enableLogging: true,

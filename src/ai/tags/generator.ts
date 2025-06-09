@@ -104,25 +104,34 @@ export class TagGenerator {
    * Build the prompt for tag generation
    */
   private buildPrompt(options: TagOptions): string {
-    const content = options.contentType || "text";
+    const content = options.content || "text";
     // return `Generate between 3 and 10 single-word, lowercase tags (no punctuation) for the following memory entry. Tags should aid future search—even by surfacing loose connections—and you may include tags that aren’t literally in the text. Return ONLY a comma-separated list of tags, with no extra text.
 
     //   Memory Entry:
     //   "${content}"`;
 
+    //     return `
+    //     Example 1
+    // Content: "iphone 13 is objectively the best phone"
+    // Good Tags: iphone, smartphone, apple, mobile, review
+
+    // Example 2
+    // Content: "I found archived government maps at nationalarchives.gov"
+    // Good Tags: maps, historical, government, archives, free, national
+
+    // Now for the new content, generate 3–10 single-word, lowercase tags (no punctuation). Return ONLY a comma-separated list.
+
+    // Content:
+    // "${content}"`;
     return `
-    Example 1
-Content: "iphone 13 is objectively the best phone"
-Good Tags: iphone, smartphone, apple, mobile, review
+        You are a tagging assistant. Given content, generate 3-10 single-word lowercase tags related to ONLY the content provided. Return ONLY the tags separated by commas, nothing else.
 
-Example 2
-Content: "I found archived government maps at nationalarchives.gov"
-Good Tags: maps, historical, government, archives, free, national
+        Examples:
+        Content: "iPhone 13 review" → iphone, phone, review, apple, mobile
+        Content: "pizza recipe" → pizza, recipe, cooking, food, italian
 
-Now for the new content, generate 3–10 single-word, lowercase tags (no punctuation). Return ONLY a comma-separated list.
-
-Content:
-"${content}"`;
+        User Content:
+        "${content}"`;
 
     // return `You’re a memory-tagging assistant. Generate 3–10 single-word, lowercase tags (no punctuation) that will help me later find or relate to this memory entry—even via loose connections. Return ONLY a comma-separated list of tags.
 
@@ -135,7 +144,6 @@ Content:
    */
   private extractTags(response: string): string[] {
     // Split by newlines and commas, then clean up each potential tag
-    console.log("🟨🟨🟨🟨 → response", response);
     const theRealDeal = response
       .split(/[,\n]/)
       .map((tag) => {

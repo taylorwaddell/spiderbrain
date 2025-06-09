@@ -906,3 +906,64 @@ Please test the changes by running the `spiderbrain n` command again. The tag ge
 - Consider adding example responses in prompts to guide the model
 - When working with AI-generated content, always validate and clean the output
 - Use multiple layers of validation and filtering to ensure clean data
+
+# Migration Plan: Switch to phi4-mini Model
+
+## Background and Motivation
+
+We need to switch from llama2 to phi4-mini for tag generation. The phi4-mini model is:
+
+- Smaller (2.5 GB vs 3.8 GB)
+- More recent
+- Potentially better suited for our tag generation task
+
+## Key Challenges and Analysis
+
+1. Current State:
+
+   - Using llama2 model in AIService configuration
+   - Model is configured in cli.ts
+   - Tag generation is working with current prompt format
+
+2. Required Changes:
+   - Update model configuration in cli.ts
+   - Potentially adjust prompt for phi4-mini's characteristics
+   - Ensure model name handling still works with new model
+
+## High-level Task Breakdown
+
+1. [x] Update Model Configuration
+
+   - Success Criteria: AIService is configured to use phi4-mini
+   - Dependencies: None
+   - Implementation: Modified cli.ts to use phi4-mini with appropriate parameters
+
+2. [ ] Test and Adjust Prompt
+   - Success Criteria: Tag generation works effectively with phi4-mini
+   - Dependencies: Task 1
+   - Implementation: Test current prompt with new model and adjust if needed
+
+## Project Status Board
+
+- [x] Task 1: Update Model Configuration
+- [ ] Task 2: Test and Adjust Prompt
+
+## Executor's Feedback or Assistance Requests
+
+I've completed the first task:
+
+1. Updated the model configuration to use phi4-mini
+2. Adjusted the model parameters:
+   - Set temperature to 0.7 for more creative tag generation
+   - Set maxTokens to 1000 to ensure we have enough context
+   - Removed llama2-specific parameters that aren't needed
+
+The next step is to test the tag generation with the new model. Please run the `spiderbrain n` command with a test input to verify the changes. Based on the results, we may need to adjust the prompt or parameters.
+
+## Lessons
+
+- Keep model configurations in a single, easily modifiable location
+- Design prompts to be model-agnostic when possible
+- Consider model size and performance characteristics when selecting models
+- Document model requirements and dependencies clearly
+- Adjust model parameters based on the specific task requirements
