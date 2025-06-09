@@ -834,3 +834,75 @@ Next Steps:
    - Set up command framework
    - Add basic commands
    - Implement configuration
+
+# Error Analysis: Tag Generation Validation Error
+
+## Background and Motivation
+
+After fixing the model initialization issue, we're now encountering a tag validation error:
+
+```
+Failed to generate tags: TagError: Tag length must be between 2 and 50 characters
+```
+
+The error occurs because the AI model is returning a full sentence as a tag: "Here are some relevant tags that could be used for the given text:"
+
+## Key Challenges and Analysis
+
+1. Root Cause:
+
+   - The AI model is returning a descriptive sentence instead of actual tags
+   - The tag extraction logic in `extractTags` is not properly handling the model's response format
+   - The validation rules are correctly catching the invalid tag, but we need to improve the prompt and extraction
+
+2. Code Flow:
+   - TagGenerator builds a prompt asking for tags
+   - Model returns a descriptive response instead of a list of tags
+   - `extractTags` splits the response but doesn't filter out non-tag content
+   - Validation fails on the first "tag" because it's actually a sentence
+
+## High-level Task Breakdown
+
+1. [x] Improve Tag Generation Prompt
+
+   - Success Criteria: Model returns a clean list of tags without descriptive text
+   - Dependencies: None
+   - Implementation: Updated prompt to be more explicit about format requirements and added example format
+
+2. [x] Enhance Tag Extraction
+   - Success Criteria: Non-tag content is properly filtered out
+   - Dependencies: None
+   - Implementation: Added robust filtering to remove sentences, descriptive text, and invalid tags
+
+## Project Status Board
+
+- [x] Task 1: Improve Tag Generation Prompt
+- [x] Task 2: Enhance Tag Extraction
+
+## Executor's Feedback or Assistance Requests
+
+I've completed both tasks:
+
+1. Updated the prompt to be more explicit about the required format and added an example
+2. Enhanced the tag extraction logic with robust filtering:
+   - Removes leading special characters
+   - Handles descriptive text after colons
+   - Filters out sentences and common descriptive words
+   - Enforces tag length limits
+   - Removes spaces and invalid content
+
+The changes should now:
+
+- Guide the model to return clean, properly formatted tags
+- Handle and filter out any unexpected response formats
+- Ensure only valid tags are processed
+
+Please test the changes by running the `spiderbrain n` command again. The tag generation should now work correctly.
+
+## Lessons
+
+- Be explicit in AI prompts about the expected response format
+- Add robust filtering for AI-generated content to handle unexpected responses
+- Consider adding example responses in prompts to guide the model
+- When working with AI-generated content, always validate and clean the output
+- Use multiple layers of validation and filtering to ensure clean data

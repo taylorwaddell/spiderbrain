@@ -47,6 +47,8 @@ const aiService = new AIService({
   },
 });
 
+console.log("🟨🟨🟨🟨 → AI service:", aiService); // not hit
+
 const nodeManager = new NodeManager(dataPath, aiService);
 
 // Initialize services before any command

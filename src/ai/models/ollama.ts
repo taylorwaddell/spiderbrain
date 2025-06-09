@@ -145,10 +145,16 @@ export class OllamaModel implements AIModel {
       // Check if model is available with retry logic
       await retry(async () => {
         const models = await this.client.list();
-        const modelExists = models.models.some((m) => m.name === config.model);
+        // Check if model exists with or without version tag
+        const modelExists = models.models.some((m) => {
+          const modelName = m.name.split(":")[0]; // Remove version tag
+          return modelName === config.model;
+        });
+
         if (!modelExists) {
+          const availableModels = models.models.map((m) => m.name).join(", ");
           throw new ModelError(
-            `Model ${config.model} not found`,
+            `Model ${config.model} not found. Available models: ${availableModels}`,
             "MODEL_NOT_FOUND"
           );
         }

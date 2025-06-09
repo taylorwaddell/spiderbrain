@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { AIService } from "./ai/services/ai.js";
 import { Node } from "./core/types.js";
 import { NodeSearch } from "./core/search.js";
 import { NodeStorage } from "./core/storage.js";
@@ -10,9 +11,26 @@ import { join } from "path";
 import ora from "ora";
 import { program } from "commander";
 
+// Initialize AI service
+const aiService = new AIService({
+  defaultModel: {
+    model: "llama2",
+    temperature: 0.7,
+    maxTokens: 1000,
+  },
+  models: {
+    llama2: {
+      model: "llama2",
+      temperature: 0.7,
+      maxTokens: 1000,
+    },
+  },
+  enableLogging: true,
+});
+
 // Initialize storage and search
 const dataPath = join(process.cwd(), "data", "nodes.jsonl");
-const storage = new NodeStorage(dataPath);
+const storage = new NodeStorage(dataPath, aiService);
 const search = new NodeSearch();
 
 // Initialize the program
@@ -20,6 +38,19 @@ program
   .name("spiderbrain")
   .description("A cross-platform knowledge-capture and retrieval system")
   .version("1.0.0");
+
+// Initialize AI service before any commands
+program.hook("preAction", async () => {
+  try {
+    await aiService.initialize();
+  } catch (error) {
+    console.error(chalk.red("Failed to initialize AI service:"));
+    if (error instanceof Error) {
+      console.error(chalk.red(error.message));
+    }
+    process.exit(1);
+  }
+});
 
 // New command
 program

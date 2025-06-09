@@ -57,6 +57,7 @@ export class TagGenerator {
    */
   async generateTags(options: TagOptions): Promise<TagResult> {
     const startTime = Date.now();
+    console.log("Generating tags with options:", this.aiService); // AI service is undefined here
     const model = options.model || this.aiService.getModel();
     const config = { ...this.config, ...options.config };
 
@@ -104,17 +105,50 @@ export class TagGenerator {
    */
   private buildPrompt(options: TagOptions): string {
     const contentType = options.contentType || "text";
-    return `Generate relevant tags for the following ${contentType}:\n\n${options.content}\n\nTags:`;
+    return `Generate 3-5 relevant tags for the following ${contentType}. Return ONLY the tags, one per line, without any additional text or description.
+
+Example format:
+technology
+smartphone
+apple
+iphone
+mobile
+
+Content:
+${options.content}
+
+Tags:`;
   }
 
   /**
    * Extract tags from the model response
    */
   private extractTags(response: string): string[] {
+    // Split by newlines and commas, then clean up each potential tag
     return response
       .split(/[,\n]/)
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
+      .map((tag) => {
+        // Remove any leading/trailing whitespace
+        tag = tag.trim();
+        // Remove any leading '#' or other special characters
+        tag = tag.replace(/^[#@!?]+/, "");
+        // Remove any descriptive text (sentences)
+        if (tag.includes(":")) {
+          tag = tag.split(":").pop() || "";
+        }
+        return tag.trim();
+      })
+      .filter((tag) => {
+        // Filter out empty tags, sentences, and descriptive text
+        return (
+          tag.length > 0 &&
+          tag.length <= 50 &&
+          !tag.includes(" ") &&
+          !tag.toLowerCase().includes("tag") &&
+          !tag.toLowerCase().includes("example") &&
+          !tag.toLowerCase().includes("content")
+        );
+      });
   }
 
   /**
