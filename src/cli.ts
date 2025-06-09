@@ -15,14 +15,18 @@ import { program } from "commander";
 const aiService = new AIService({
   defaultModel: {
     model: "llama2",
-    temperature: 0.7,
-    maxTokens: 1000,
+    temperature: 0.0,
+    max_tokens: 50,
+    presence_penalty: 0.3,
+    frequency_penalty: 0.5,
   },
   models: {
     llama2: {
       model: "llama2",
-      temperature: 0.7,
-      maxTokens: 1000,
+      temperature: 0.0,
+      max_tokens: 50,
+      presence_penalty: 0.3,
+      frequency_penalty: 0.5,
     },
   },
   enableLogging: true,

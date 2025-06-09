@@ -104,20 +104,30 @@ export class TagGenerator {
    * Build the prompt for tag generation
    */
   private buildPrompt(options: TagOptions): string {
-    const contentType = options.contentType || "text";
-    return `Generate 3-5 relevant tags for the following ${contentType}. Return ONLY the tags, one per line, without any additional text or description.
+    const content = options.contentType || "text";
+    // return `Generate between 3 and 10 single-word, lowercase tags (no punctuation) for the following memory entry. Tags should aid future search—even by surfacing loose connections—and you may include tags that aren’t literally in the text. Return ONLY a comma-separated list of tags, with no extra text.
 
-Example format:
-technology
-smartphone
-apple
-iphone
-mobile
+    //   Memory Entry:
+    //   "${content}"`;
+
+    return `
+    Example 1
+Content: "iphone 13 is objectively the best phone"
+Good Tags: iphone, smartphone, apple, mobile, review
+
+Example 2
+Content: "I found archived government maps at nationalarchives.gov"
+Good Tags: maps, historical, government, archives, free, national
+
+Now for the new content, generate 3–10 single-word, lowercase tags (no punctuation). Return ONLY a comma-separated list.
 
 Content:
-${options.content}
+"${content}"`;
 
-Tags:`;
+    // return `You’re a memory-tagging assistant. Generate 3–10 single-word, lowercase tags (no punctuation) that will help me later find or relate to this memory entry—even via loose connections. Return ONLY a comma-separated list of tags.
+
+    // Content:
+    // "${content}"`;
   }
 
   /**
@@ -125,7 +135,8 @@ Tags:`;
    */
   private extractTags(response: string): string[] {
     // Split by newlines and commas, then clean up each potential tag
-    return response
+    console.log("🟨🟨🟨🟨 → response", response);
+    const theRealDeal = response
       .split(/[,\n]/)
       .map((tag) => {
         // Remove any leading/trailing whitespace
@@ -149,6 +160,8 @@ Tags:`;
           !tag.toLowerCase().includes("content")
         );
       });
+    console.log("🟨🟨🟨🟨 → theRealDeal", theRealDeal);
+    return theRealDeal;
   }
 
   /**
