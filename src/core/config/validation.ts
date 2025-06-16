@@ -1,3 +1,8 @@
+import {
+  OllamaNotAvailableError,
+  OllamaService,
+} from "../../ai/services/ollama.js";
+
 import { Config } from "../config.js";
 import { dirname } from "path";
 import { promises as fs } from "fs";
@@ -36,37 +41,73 @@ export async function validateDataDir(path: string): Promise<void> {
 /**
  * Validate a model name
  */
-export function validateModel(model: string): void {
-  const validModels = ["phi4-mini"]; // Add more models as they become available
-  if (!validModels.includes(model)) {
-    throw new ConfigValidationError(
-      `Invalid model: ${model}. Valid models are: ${validModels.join(", ")}`,
-      "model"
-    );
+export async function validateModel(
+  model: string,
+  ollamaService?: OllamaService
+): Promise<void> {
+  function fallback(): void {
+    const validModels = ["phi4-mini"]; // Default fallback list
+    if (!validModels.includes(model)) {
+      throw new ConfigValidationError(
+        `Invalid model: ${model}. Valid models are: ${validModels.join(", ")}`,
+        "model"
+      );
+    }
+    return;
+  }
+
+  // If no Ollama service is provided, use a basic validation
+  if (!ollamaService) {
+    return fallback();
+  }
+
+  try {
+    // Try to validate against Ollama models
+    const isValid = await ollamaService.validateModel(model);
+    if (!isValid) {
+      const availableModels = await ollamaService.listModels();
+      throw new ConfigValidationError(
+        `Invalid model: ${model}. Available models are: ${availableModels.join(
+          ", "
+        )}`,
+        "model"
+      );
+    }
+  } catch (error) {
+    if (error instanceof OllamaNotAvailableError) {
+      // If Ollama is not available, use basic validation
+      fallback();
+    } else {
+      throw error;
+    }
   }
 }
 
 /**
  * Validate the entire configuration
  */
-export async function validateConfig(config: Config): Promise<void> {
+export async function validateConfig(
+  config: Config,
+  ollamaService?: OllamaService
+): Promise<void> {
   // Validate data directory
   await validateDataDir(config.dataDir);
 
   // Validate model
-  validateModel(config.model);
+  await validateModel(config.model, ollamaService);
 }
 
 /**
  * Validate a partial configuration update
  */
 export async function validateConfigUpdate(
-  updates: Partial<Config>
+  updates: Partial<Config>,
+  ollamaService?: OllamaService
 ): Promise<void> {
   if (updates.dataDir) {
     await validateDataDir(updates.dataDir);
   }
   if (updates.model) {
-    validateModel(updates.model);
+    await validateModel(updates.model, ollamaService);
   }
 }

@@ -5,6 +5,7 @@ import {
 } from "./config/validation.js";
 import { dirname, join } from "path";
 
+import { OllamaService } from "../ai/services/ollama.js";
 import { promises as fs } from "fs";
 import { homedir } from "os";
 import { platform } from "os";
@@ -51,10 +52,18 @@ function getConfigPath(): string {
 export class ConfigManager {
   private config: Config;
   private configPath: string;
+  private ollamaService: OllamaService | null = null;
 
   constructor(configPath?: string) {
     this.configPath = configPath || getConfigPath();
     this.config = { ...DEFAULT_CONFIG };
+  }
+
+  /**
+   * Set the Ollama service for model validation
+   */
+  setOllamaService(service: OllamaService): void {
+    this.ollamaService = service;
   }
 
   /**
@@ -72,7 +81,7 @@ export class ConfigManager {
         this.config = { ...DEFAULT_CONFIG, ...loadedConfig };
 
         // Validate loaded config
-        await validateConfig(this.config);
+        await validateConfig(this.config, this.ollamaService || undefined);
       } catch (error) {
         if (error instanceof ConfigValidationError) {
           // If validation fails, use defaults
@@ -92,7 +101,7 @@ export class ConfigManager {
   async save(): Promise<void> {
     try {
       // Validate before saving
-      await validateConfig(this.config);
+      await validateConfig(this.config, this.ollamaService || undefined);
 
       await fs.writeFile(
         this.configPath,
@@ -120,7 +129,7 @@ export class ConfigManager {
   async updateConfig(updates: Partial<Config>): Promise<void> {
     try {
       // Validate updates before applying
-      await validateConfigUpdate(updates);
+      await validateConfigUpdate(updates, this.ollamaService || undefined);
 
       this.config = { ...this.config, ...updates };
       await this.save();

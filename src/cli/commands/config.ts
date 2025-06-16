@@ -1,4 +1,8 @@
 import { NodeStorage, PathValidationError } from "../../core/storage.js";
+import {
+  OllamaNotAvailableError,
+  OllamaService,
+} from "../../ai/services/ollama.js";
 
 import { ConfigManager } from "../../core/config.js";
 import { ConfigValidationError } from "../../core/config/validation.js";
@@ -8,16 +12,40 @@ import { join } from "path";
 import ora from "ora";
 
 export async function configCommand(
-  action: "get" | "set",
+  action: "get" | "set" | "list-models",
   key?: string,
   value?: string
 ): Promise<void> {
   const spinner = ora("Managing configuration...").start();
   const configManager = new ConfigManager();
+  const ollamaService = new OllamaService();
 
   try {
     await configManager.initialize();
+    configManager.setOllamaService(ollamaService);
     const config = configManager.getConfig();
+
+    if (action === "list-models") {
+      spinner.stop();
+      try {
+        const models = await ollamaService.listModels();
+        console.log(chalk.green("Available models:"));
+        models.forEach((model) => {
+          console.log(chalk.yellow(`  - ${model}`));
+        });
+      } catch (error) {
+        if (error instanceof OllamaNotAvailableError) {
+          console.log(chalk.yellow("Ollama is not installed or not in PATH."));
+          console.log(chalk.yellow("Default model: phi4-mini"));
+        } else {
+          console.error(chalk.red("Failed to list models:"));
+          console.error(
+            chalk.red(error instanceof Error ? error.message : String(error))
+          );
+        }
+      }
+      return;
+    }
 
     if (action === "get") {
       spinner.stop();
@@ -74,6 +102,25 @@ export async function configCommand(
           // Migrate data to new location
           spinner.text = "Migrating data to new location...";
           await storage.migrateData(value);
+        } else if (key === "model") {
+          // For model changes, show available models
+          try {
+            const models = await ollamaService.listModels();
+            console.log(chalk.green("Available models:"));
+            models.forEach((model) => {
+              console.log(chalk.yellow(`  - ${model}`));
+            });
+          } catch (error) {
+            if (error instanceof OllamaNotAvailableError) {
+              console.log(
+                chalk.yellow("Ollama is not installed or not in PATH.")
+              );
+              console.log(chalk.yellow("Default model: phi4-mini"));
+            }
+          }
+
+          // Update the model
+          await configManager.setModel(value);
         } else {
           // For other keys, just update the configuration
           await configManager.updateConfig({ [key]: value });

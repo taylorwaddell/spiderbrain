@@ -345,46 +345,143 @@ src/
 - Data path integration has been implemented with migration support.
 - Fixed data path configuration error by correcting the order of operations.
 - Added error recovery for failed migrations.
+- Added configuration validation system.
+- Added Ollama model detection and validation.
 
 ## Next Up: Planner Recommendations
 
-### 1. **User Experience Improvements** (In Progress)
+### 1. **CSV Export Implementation**
 
-- ✅ Add CLI commands for:
-  - ✅ Viewing and changing the data directory
-  - ✅ Viewing and changing the model (when AI is re-enabled)
-- Add clear error messages and user prompts for configuration issues.
-- Add configuration validation and migration support.
+#### A. Create Export Service
 
-### 2. **Configuration System Enhancements**
+1. Create new module `src/core/export/service.ts`:
 
-- Add configuration validation:
-  - Validate model names against available models
-  - Validate data directory paths
-  - Add configuration schema validation
-- Add configuration migration support:
-  - Version the configuration file
-  - Add migration scripts for future changes
-  - Add backup/restore functionality
+   ```typescript
+   export class ExportService {
+     async exportToCSV(nodes: Node[], options: ExportOptions): Promise<void>;
+     async exportToJSON(nodes: Node[], options: ExportOptions): Promise<void>;
+   }
+   ```
 
-### 3. **Documentation Updates**
+2. Implementation Details:
+   - Use `csv-stringify` for CSV generation
+   - Support custom field selection
+   - Support custom date formatting
+   - Support custom delimiter
+   - Support custom encoding
+   - Add progress tracking
+   - Add error handling
 
-- Update README with new configuration features
-- Add configuration troubleshooting guide
-- Add examples of common configuration scenarios
-- Document the configuration file format and options
+#### B. Add Export Options
 
-### 4. **Testing Improvements**
+1. Create types in `src/core/export/types.ts`:
 
-- Add integration tests for configuration changes
-- Add tests for configuration migration
-- Add tests for error recovery
-- Add tests for path validation
+   ```typescript
+   export interface ExportOptions {
+     format: "csv" | "json";
+     fields?: string[];
+     dateFormat?: string;
+     delimiter?: string;
+     encoding?: string;
+     outputPath?: string;
+   }
+   ```
 
-### 5. **Prepare for AI Integration (Future Work)**
+2. Default Options:
+   - Default fields: id, timestamp, raw_text, tags
+   - Default date format: ISO 8601
+   - Default delimiter: comma
+   - Default encoding: UTF-8
 
-- Plan for reintroducing AI features behind feature flags or config toggles.
-- Add a stub or warning in the CLI for AI-dependent commands, letting users know it's "coming soon."
+#### C. Update CLI Command
+
+1. Enhance export command:
+
+   ```bash
+   # Basic export
+   spiderbrain export
+
+   # Export to CSV
+   spiderbrain export --format csv
+
+   # Export specific fields
+   spiderbrain export --fields id,timestamp,raw_text
+
+   # Export with custom options
+   spiderbrain export --format csv --delimiter ";" --date-format "YYYY-MM-DD"
+   ```
+
+2. Add Options:
+   - `--format`: Output format (csv/json)
+   - `--fields`: Fields to include
+   - `--date-format`: Date format string
+   - `--delimiter`: CSV delimiter
+   - `--encoding`: File encoding
+   - `--output`: Output file path
+
+### 2. **Implementation Steps**
+
+1. **Create Export Service**
+
+   - [ ] Create basic service structure
+   - [ ] Implement CSV export
+   - [ ] Implement JSON export
+   - [ ] Add field selection
+   - [ ] Add date formatting
+   - [ ] Add error handling
+   - [ ] Add tests
+
+2. **Add Export Types**
+
+   - [ ] Define export options
+   - [ ] Define field types
+   - [ ] Add validation
+   - [ ] Add tests
+
+3. **Update CLI**
+   - [ ] Add export options
+   - [ ] Add format selection
+   - [ ] Add field selection
+   - [ ] Add tests
+   - [ ] Update documentation
+
+### 3. **Testing Plan**
+
+1. **Unit Tests**
+
+   - Test CSV generation
+   - Test JSON generation
+   - Test field selection
+   - Test date formatting
+   - Test error handling
+
+2. **Integration Tests**
+
+   - Test with real nodes
+   - Test with different options
+   - Test with large datasets
+   - Test file writing
+
+3. **Manual Testing**
+   - Test with different formats
+   - Test with different options
+   - Test with different datasets
+   - Test error scenarios
+
+### 4. **Documentation Updates**
+
+1. **Update README**
+
+   - Add export command documentation
+   - Add format options
+   - Add field options
+   - Add examples
+
+2. **Update Help Text**
+   - Add export command
+   - Add format options
+   - Add field options
+   - Add examples
 
 ## Project Status Board
 
@@ -395,22 +492,25 @@ src/
 - [x] Add data path change handling
 - [x] Add data migration support
 - [x] Fix data path configuration error
-- [ ] Add configuration validation
-- [ ] Add configuration migration support
-- [ ] Add configuration backup/restore
-- [ ] Add configuration documentation
-- [ ] Add configuration tests
+- [x] Add configuration validation
+- [x] Add Ollama model detection
+- [x] Add model listing command
+- [ ] Add CSV export functionality
+- [ ] Add JSON export functionality
+- [ ] Add export options
+- [ ] Add export documentation
+- [ ] Add export tests
 
 ## Executor's Feedback or Assistance Requests
 
-The data path configuration error has been fixed by correcting the order of operations and adding error recovery. The next logical steps are:
+The plan for CSV export functionality has been created. The key points are:
 
-1. Add configuration validation to prevent invalid configurations
-2. Add configuration migration support for future changes
-3. Update documentation to reflect the new configuration features
-4. Add tests for the new configuration functionality
+1. Create a dedicated export service for handling different formats
+2. Add flexible export options for customization
+3. Update the CLI with new export commands
+4. Add comprehensive testing and documentation
 
-Would you like me to proceed with implementing any of these next steps?
+Would you like me to proceed with implementing the export service first?
 
 ## Lessons
 
