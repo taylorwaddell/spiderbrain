@@ -1,10 +1,12 @@
 import {
+  ExportFormat,
   ExportOptions,
   ExportProgress,
   ExportProgressCallback,
   ExportResult,
 } from "./types.js";
 
+import { ConfigManager } from "../config.js";
 import { Node } from "../types.js";
 import chalk from "chalk";
 import { format } from "date-fns";
@@ -13,12 +15,23 @@ import { join } from "path";
 import { stringify } from "csv-stringify/sync";
 
 export class ExportService {
+  private readonly configManager: ConfigManager;
   private readonly DEFAULT_OPTIONS: Partial<ExportOptions> = {
     fields: ["id", "timestamp", "raw_text", "tags"],
     dateFormat: "yyyy-MM-dd'T'HH:mm:ss.SSSxxx",
     delimiter: ",",
-    encoding: "utf8",
+    encoding: "utf8"
   };
+
+  constructor(configManager: ConfigManager) {
+    this.configManager = configManager;
+  }
+
+  private getDefaultOutputPath(format: ExportFormat): string {
+    const dataDir = this.configManager.getDataDir();
+    const timestamp = Date.now();
+    return join(dataDir, `export_${timestamp}.${format}`);
+  }
 
   async exportToCSV(
     nodes: Node[],
@@ -76,7 +89,7 @@ export class ExportService {
         status: "writing",
       });
 
-      const outputPath = mergedOptions.outputPath || `export_${Date.now()}.csv`;
+      const outputPath = mergedOptions.outputPath || this.getDefaultOutputPath("csv");
       await fs.writeFile(outputPath, csv, {
         encoding: mergedOptions.encoding as BufferEncoding,
       });
@@ -159,8 +172,7 @@ export class ExportService {
         status: "writing",
       });
 
-      const outputPath =
-        mergedOptions.outputPath || `export_${Date.now()}.json`;
+      const outputPath = mergedOptions.outputPath || this.getDefaultOutputPath("json");
       await fs.writeFile(outputPath, json, {
         encoding: mergedOptions.encoding as BufferEncoding,
       });
@@ -199,8 +211,8 @@ export class ExportService {
     } as Required<ExportOptions>;
 
     if (!obj.fields?.length && this.DEFAULT_OPTIONS.fields) {
-      obj.fields = this.DEFAULT_OPTIONS.fields
+      obj.fields = this.DEFAULT_OPTIONS.fields;
     }
-    return obj
+    return obj;
   }
 }

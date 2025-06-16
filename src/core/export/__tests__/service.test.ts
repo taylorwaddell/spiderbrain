@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ConfigManager } from "../../config.js";
 import { ExportService } from "../service.js";
 import { Node } from "../../types.js";
 import { promises as fs } from "fs";
@@ -7,9 +8,14 @@ import { promises as fs } from "fs";
 describe("ExportService", () => {
   let exportService: ExportService;
   let testNodes: Node[];
+  let mockConfigManager: ConfigManager;
 
   beforeEach(() => {
-    exportService = new ExportService();
+    mockConfigManager = {
+      getDataDir: vi.fn().mockReturnValue("/test/data/dir"),
+    } as any;
+
+    exportService = new ExportService(mockConfigManager);
     testNodes = [
       {
         id: "1",
@@ -37,6 +43,7 @@ describe("ExportService", () => {
         await fs.unlink(file);
       }
     }
+    vi.clearAllMocks();
   });
 
   describe("exportToCSV", () => {
@@ -47,6 +54,7 @@ describe("ExportService", () => {
 
       expect(result.success).toBe(true);
       expect(result.outputPath).toBeDefined();
+      expect(result.outputPath).toMatch(/\/test\/data\/dir\/export_\d+\.csv$/);
       expect(result.stats.exportedNodes).toBe(2);
 
       const content = await fs.readFile(result.outputPath!, "utf8");
@@ -98,6 +106,7 @@ describe("ExportService", () => {
 
       expect(result.success).toBe(true);
       expect(result.outputPath).toBeDefined();
+      expect(result.outputPath).toMatch(/\/test\/data\/dir\/export_\d+\.json$/);
       expect(result.stats.exportedNodes).toBe(2);
 
       const content = await fs.readFile(result.outputPath!, "utf8");

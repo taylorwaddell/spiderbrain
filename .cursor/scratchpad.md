@@ -347,140 +347,118 @@ src/
 - Added error recovery for failed migrations.
 - Added configuration validation system.
 - Added Ollama model detection and validation.
+- Added export functionality with CSV and JSON support.
+
+### Recent Changes Review
+
+1. **Export Command Updates**:
+
+   - Changed format parameter to be part of options object
+   - Added ExportFormat type import
+   - Fixed format handling in export service calls
+   - Added debug logging for format issues
+
+2. **Current Issues**:
+   - Export format is undefined in options
+   - Output path defaults to current directory
+   - Need to integrate with ConfigManager's dataDir
 
 ## Next Up: Planner Recommendations
 
-### 1. **CSV Export Implementation**
+### 1. **Default Output Path Implementation**
 
-#### A. Create Export Service
+#### A. Update Export Service
 
-1. Create new module `src/core/export/service.ts`:
+1. Modify `ExportService` to use ConfigManager:
 
    ```typescript
    export class ExportService {
-     async exportToCSV(nodes: Node[], options: ExportOptions): Promise<void>;
-     async exportToJSON(nodes: Node[], options: ExportOptions): Promise<void>;
+     private readonly configManager: ConfigManager;
+
+     constructor(configManager: ConfigManager) {
+       this.configManager = configManager;
+     }
+
+     private getDefaultOutputPath(format: ExportFormat): string {
+       const dataDir = this.configManager.getDataDir();
+       const timestamp = Date.now();
+       return join(dataDir, `export_${timestamp}.${format}`);
+     }
    }
    ```
 
-2. Implementation Details:
-   - Use `csv-stringify` for CSV generation
-   - Support custom field selection
-   - Support custom date formatting
-   - Support custom delimiter
-   - Support custom encoding
-   - Add progress tracking
-   - Add error handling
+2. Update export methods to use default path:
+   ```typescript
+   async exportToCSV(nodes: Node[], options: ExportOptions): Promise<ExportResult> {
+     const outputPath = options.outputPath || this.getDefaultOutputPath("csv");
+     // ... rest of the method
+   }
+   ```
 
-#### B. Add Export Options
+#### B. Update Export Command
 
-1. Create types in `src/core/export/types.ts`:
+1. Pass ConfigManager to ExportService:
 
    ```typescript
-   export interface ExportOptions {
-     format: "csv" | "json";
-     fields?: string[];
-     dateFormat?: string;
-     delimiter?: string;
-     encoding?: string;
-     outputPath?: string;
-   }
+   const exportService = new ExportService(configManager);
    ```
 
-2. Default Options:
-   - Default fields: id, timestamp, raw_text, tags
-   - Default date format: ISO 8601
-   - Default delimiter: comma
-   - Default encoding: UTF-8
-
-#### C. Update CLI Command
-
-1. Enhance export command:
-
-   ```bash
-   # Basic export
-   spiderbrain export
-
-   # Export to CSV
-   spiderbrain export --format csv
-
-   # Export specific fields
-   spiderbrain export --fields id,timestamp,raw_text
-
-   # Export with custom options
-   spiderbrain export --format csv --delimiter ";" --date-format "YYYY-MM-DD"
+2. Update command registration:
+   ```typescript
+   program
+     .command("export")
+     .description("Export nodes to CSV or JSON format")
+     .requiredOption("-f, --format <format>", "Export format (csv or json)")
+     .option("--fields <fields>", "Comma-separated list of fields to export");
+   // ... other options
    ```
 
-2. Add Options:
-   - `--format`: Output format (csv/json)
-   - `--fields`: Fields to include
-   - `--date-format`: Date format string
-   - `--delimiter`: CSV delimiter
-   - `--encoding`: File encoding
-   - `--output`: Output file path
+#### C. Update Tests
+
+1. Update ExportService tests:
+
+   - Add ConfigManager mock
+   - Test default output path generation
+   - Test path joining with dataDir
+
+2. Update ExportCommand tests:
+   - Update format handling
+   - Test default output path
+   - Test custom output path
 
 ### 2. **Implementation Steps**
 
-1. **Create Export Service**
+1. **Update Export Service**
 
-   - [ ] Create basic service structure
-   - [ ] Implement CSV export
-   - [ ] Implement JSON export
-   - [ ] Add field selection
-   - [ ] Add date formatting
-   - [ ] Add error handling
+   - [ ] Add ConfigManager dependency
+   - [ ] Add default output path method
+   - [ ] Update export methods
    - [ ] Add tests
 
-2. **Add Export Types**
+2. **Update Export Command**
 
-   - [ ] Define export options
-   - [ ] Define field types
-   - [ ] Add validation
-   - [ ] Add tests
+   - [ ] Update command registration
+   - [ ] Pass ConfigManager to ExportService
+   - [ ] Update tests
+   - [ ] Add documentation
 
-3. **Update CLI**
-   - [ ] Add export options
-   - [ ] Add format selection
-   - [ ] Add field selection
-   - [ ] Add tests
-   - [ ] Update documentation
+3. **Testing Plan**
+   - [ ] Test default output path
+   - [ ] Test custom output path
+   - [ ] Test path validation
+   - [ ] Test error handling
 
-### 3. **Testing Plan**
-
-1. **Unit Tests**
-
-   - Test CSV generation
-   - Test JSON generation
-   - Test field selection
-   - Test date formatting
-   - Test error handling
-
-2. **Integration Tests**
-
-   - Test with real nodes
-   - Test with different options
-   - Test with large datasets
-   - Test file writing
-
-3. **Manual Testing**
-   - Test with different formats
-   - Test with different options
-   - Test with different datasets
-   - Test error scenarios
-
-### 4. **Documentation Updates**
+### 3. **Documentation Updates**
 
 1. **Update README**
 
    - Add export command documentation
-   - Add format options
-   - Add field options
+   - Add output path information
    - Add examples
 
 2. **Update Help Text**
-   - Add export command
-   - Add format options
-   - Add field options
+   - Add format requirement
+   - Add output path information
    - Add examples
 
 ## Project Status Board
@@ -495,22 +473,26 @@ src/
 - [x] Add configuration validation
 - [x] Add Ollama model detection
 - [x] Add model listing command
-- [ ] Add CSV export functionality
-- [ ] Add JSON export functionality
-- [ ] Add export options
-- [ ] Add export documentation
-- [ ] Add export tests
+- [x] Add CSV export functionality
+- [x] Add JSON export functionality
+- [x] Add export options
+- [x] Add export documentation
+- [x] Add export tests
+- [ ] Add default output path to dataDir
+- [ ] Update export command format handling
+- [ ] Add output path tests
+- [ ] Update export documentation
 
 ## Executor's Feedback or Assistance Requests
 
-The plan for CSV export functionality has been created. The key points are:
+The plan for implementing default output path has been created. The key points are:
 
-1. Create a dedicated export service for handling different formats
-2. Add flexible export options for customization
-3. Update the CLI with new export commands
-4. Add comprehensive testing and documentation
+1. Integrate ConfigManager with ExportService
+2. Add default output path generation
+3. Update command registration to handle format properly
+4. Add comprehensive testing
 
-Would you like me to proceed with implementing the export service first?
+Would you like me to proceed with implementing the ExportService updates first?
 
 ## Lessons
 

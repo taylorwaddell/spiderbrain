@@ -8,16 +8,7 @@ import { promises as fs } from "fs";
 
 // Mock dependencies
 vi.mock("../../../core/storage.js");
-vi.mock("../../../core/config.js");
 vi.mock("../../../core/export/service.js");
-vi.mock("ora", () => ({
-  default: vi.fn(() => ({
-    start: vi.fn().mockReturnThis(),
-    succeed: vi.fn().mockReturnThis(),
-    fail: vi.fn().mockReturnThis(),
-    text: vi.fn().mockReturnThis(),
-  })),
-}));
 
 describe("exportCommand", () => {
   const mockNodes = [
@@ -51,6 +42,7 @@ describe("exportCommand", () => {
       () =>
         ({
           initialize: vi.fn().mockResolvedValue(undefined),
+          getDataDir: vi.fn().mockReturnValue("/test/data/dir"),
         } as any)
     );
 
@@ -60,12 +52,12 @@ describe("exportCommand", () => {
         ({
           exportToCSV: vi.fn().mockResolvedValue({
             success: true,
-            outputPath: "export_123.csv",
+            outputPath: "/test/data/dir/export_123.csv",
             stats: { totalNodes: 2, exportedNodes: 2, skippedNodes: 0 },
           }),
           exportToJSON: vi.fn().mockResolvedValue({
             success: true,
-            outputPath: "export_123.json",
+            outputPath: "/test/data/dir/export_123.json",
             stats: { totalNodes: 2, exportedNodes: 2, skippedNodes: 0 },
           }),
         } as any)
@@ -80,7 +72,9 @@ describe("exportCommand", () => {
   });
 
   it("should export nodes to CSV with default options", async () => {
-    await exportCommand("csv", {});
+    await exportCommand({
+      format: "csv",
+    });
 
     const exportService = vi.mocked(ExportService).mock.results[0].value;
     expect(exportService.exportToCSV).toHaveBeenCalledWith(
@@ -97,7 +91,9 @@ describe("exportCommand", () => {
   });
 
   it("should export nodes to JSON with default options", async () => {
-    await exportCommand("json", {});
+    await exportCommand({
+      format: "json",
+    });
 
     const exportService = vi.mocked(ExportService).mock.results[0].value;
     expect(exportService.exportToJSON).toHaveBeenCalledWith(
@@ -113,7 +109,8 @@ describe("exportCommand", () => {
   });
 
   it("should export nodes to CSV with custom options", async () => {
-    await exportCommand("csv", {
+    await exportCommand({
+      format: "csv",
       fields: "id,raw_text",
       delimiter: ";",
       output: "custom.csv",
@@ -141,7 +138,9 @@ describe("exportCommand", () => {
         } as any)
     );
 
-    await exportCommand("csv", {});
+    await exportCommand({
+      format: "csv",
+    });
 
     const exportService = vi.mocked(ExportService).mock.results[0].value;
     expect(exportService.exportToCSV).not.toHaveBeenCalled();
@@ -164,7 +163,9 @@ describe("exportCommand", () => {
         } as any)
     );
 
-    await exportCommand("csv", {});
+    await exportCommand({
+      format: "csv",
+    });
 
     const exportService = vi.mocked(ExportService).mock.results[0].value;
     expect(exportService.exportToCSV).toHaveBeenCalled();

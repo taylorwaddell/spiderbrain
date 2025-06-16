@@ -21,7 +21,7 @@ export async function exportCommand(
   const spinner = ora("Preparing export...").start();
   const configManager = new ConfigManager();
   const storage = new NodeStorage(configManager);
-  const exportService = new ExportService();
+  const exportService = new ExportService(configManager);
 
   try {
     // Initialize storage
@@ -48,10 +48,6 @@ export async function exportCommand(
       encoding: options.encoding,
       outputPath: options.output,
     };
-
-    console.log('exportOptions.formatexportOptions.formatexportOptions.formatexportOptions.format')
-    console.log(exportOptions.format) // always undefined
-    console.log('exportOptions.formatexportOptions.formatexportOptions.formatexportOptions.format')
 
     // Export nodes
     spinner.text = "Exporting nodes...";
