@@ -42,7 +42,9 @@ const search = new NodeSearch();
 // Initialize the program
 program
   .name("spiderbrain")
-  .description("A cross-platform knowledge-capture and retrieval system")
+  .description(
+    "A cross-platform knowledge-capture and retrieval system that helps you store and search through your ideas, concepts, and facts."
+  )
   .version("1.0.0");
 
 // Initialize AI service before any commands
@@ -62,10 +64,15 @@ program.hook("preAction", async () => {
 program
   .command("new")
   .alias("n")
-  .description("Add a new node to the knowledge base")
-  .argument("<content>", "Text content to add")
+  .description(
+    "Add a new node to the knowledge base. You can add text directly or from a file."
+  )
+  .argument("<content>", "Text content to add (ignored if --file is specified)")
   .option("-f, --file <path>", "Path to a file to add instead of direct text")
-  .option("--title <title>", "Custom title for the node")
+  .option(
+    "--title <title>",
+    "Custom title for the node (defaults to first 50 chars of content or filename)"
+  )
   .action(
     async (content: string, options: { file?: string; title?: string }) => {
       const spinner = ora("Adding new node...").start();
@@ -116,7 +123,7 @@ program
           chalk.green(`Node added successfully with ID: ${node.id}`)
         );
       } catch (error) {
-        spinner.fail(chalk.red("Failed to add node", error));
+        spinner.fail(chalk.red("Failed to add node"));
         if (error instanceof Error) {
           console.error(chalk.red(error.message));
         } else {
@@ -131,9 +138,15 @@ program
 program
   .command("search")
   .alias("s")
-  .description("Search the knowledge base")
-  .argument("<query>", "Search query")
-  .option("--limit <number>", "Limit number of results", "10")
+  .description(
+    "Search through your knowledge base using natural language queries"
+  )
+  .argument("<query>", "Search query (supports natural language)")
+  .option(
+    "--limit <number>",
+    "Maximum number of results to return (default: 10)",
+    "10"
+  )
   .action(async (query: string, options: { limit?: string }) => {
     const spinner = ora("Searching...").start();
     try {
@@ -191,8 +204,12 @@ program
 program
   .command("export")
   .alias("e")
-  .description("Export the knowledge base")
-  .option("--format <format>", "Export format (json or text)", "text")
+  .description("Export your knowledge base to a file or stdout")
+  .option(
+    "--format <format>",
+    "Export format (json or text, default: text)",
+    "text"
+  )
   .option("-o, --output <path>", "Output file path (default: stdout)")
   .action(async (options: { format: string; output?: string }) => {
     await exportCommand(storage, options);
