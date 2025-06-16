@@ -342,7 +342,134 @@ src/
 - AI tag generation is working great, and we're focusing on building out functionality rather than tests for now.
 - Documentation has been updated to reflect current state and features.
 - Configuration management commands have been added to the CLI.
-- Need to properly integrate configured data path with storage system.
+- Data path integration has been implemented with migration support.
+- Found an issue with data path handling during configuration changes.
+
+## Current Issue: Data Path Configuration Error
+
+**Error Details**:
+
+```
+Invalid or unwritable directory: /Users/taylorwaddell/Documents/spiderbrain. Error: Error: ENOENT: no such file or directory, open '/new/data/path/nodes.jsonl'
+```
+
+**Root Cause Analysis**:
+
+1. The error occurs when trying to set a new data directory
+2. The storage system is trying to access a file at '/new/data/path/nodes.jsonl' which doesn't exist
+3. The path handling in NodeStorage is not properly using the configured path
+4. The migration process is not properly handling the initial state
+
+## Fix Plan
+
+### 1. **Fix Path Handling in NodeStorage**
+
+- Update `getDataPath()` to properly join paths
+- Add validation for path existence
+- Add proper error handling for path operations
+- Add logging for path operations
+
+### 2. **Improve Configuration Change Process**
+
+- Update the order of operations:
+  1.  Validate new path
+  2.  Create directory if needed
+  3.  Initialize storage with new path
+  4.  Migrate data if needed
+  5.  Update configuration
+- Add proper error handling for each step
+- Add rollback capability if migration fails
+
+### 3. **Add Path Validation**
+
+- Add function to validate path format
+- Add function to check path permissions
+- Add function to ensure parent directories exist
+- Add proper error messages for each validation step
+
+### 4. **Update Error Handling**
+
+- Add specific error types for path-related issues
+- Add detailed error messages
+- Add proper error recovery
+- Add logging for debugging
+
+## Implementation Steps
+
+1. **Update NodeStorage**
+
+   ```typescript
+   // Add proper path handling
+   private getDataPath(): string {
+     const basePath = this.configManager.getDataDir();
+     return join(basePath, "nodes.jsonl");
+   }
+
+   // Add path validation
+   private async validatePath(path: string): Promise<void> {
+     // Implementation
+   }
+   ```
+
+2. **Update Config Command**
+
+   ```typescript
+   // Update configuration change process
+   async function handleDataDirChange(newPath: string): Promise<void> {
+     // Implementation
+   }
+   ```
+
+3. **Add Error Types**
+   ```typescript
+   // Add specific error types
+   class PathValidationError extends Error {
+     // Implementation
+   }
+   ```
+
+## Testing Plan
+
+1. **Unit Tests**
+
+   - Test path joining
+   - Test path validation
+   - Test error handling
+   - Test migration process
+
+2. **Integration Tests**
+
+   - Test configuration changes
+   - Test data migration
+   - Test error recovery
+
+3. **Manual Testing**
+   - Test with various path formats
+   - Test with different permissions
+   - Test error scenarios
+
+## Project Status Board
+
+- [x] Update README with current features and usage
+- [x] Update CLI help text and descriptions
+- [x] Add configuration management commands
+- [x] Update NodeStorage to use ConfigManager
+- [x] Add data path change handling
+- [x] Add data migration support
+- [ ] Fix data path configuration error
+- [ ] Add user-friendly error messages
+- [ ] Add configuration validation
+- [ ] Add configuration migration support
+
+## Executor's Feedback or Assistance Requests
+
+The data path configuration error has been identified and a plan has been created to fix it. The main issues are:
+
+1. Incorrect path handling in NodeStorage
+2. Improper order of operations during configuration changes
+3. Missing validation and error handling
+
+Would you like me to proceed with implementing the fix plan?
 
 ## Next Up: Planner Recommendations
 
@@ -358,36 +485,13 @@ src/
   - ✅ Viewing and changing the model (when AI is re-enabled)
 - Add clear error messages and user prompts for configuration issues.
 
-### 3. **Data Path Integration Plan**
+### 3. ✅ **Data Path Integration** (Completed)
 
-- **Current Issue**: Storage system uses hardcoded data path instead of configured path
-- **Required Changes**:
-  1.  Modify NodeStorage to accept ConfigManager in constructor
-  2.  Update storage initialization to use configured data path
-  3.  Add data path change handling
-  4.  Add data migration support
-  5.  Update tests to reflect new configuration dependency
-
-**Detailed Steps**:
-
-1.  **Storage System Updates**
-
-    - Add ConfigManager dependency to NodeStorage
-    - Add method to handle data path changes
-    - Add data migration support
-    - Update error handling for path-related issues
-
-2.  **CLI Integration**
-
-    - Update storage initialization in CLI
-    - Add data path change validation
-    - Add data migration command
-    - Update help text for data path commands
-
-3.  **Testing Updates**
-    - Add tests for data path changes
-    - Add tests for data migration
-    - Update existing tests to use ConfigManager
+- ✅ Modify NodeStorage to accept ConfigManager in constructor
+- ✅ Update storage initialization to use configured data path
+- ✅ Add data path change handling
+- ✅ Add data migration support
+- ✅ Update tests to reflect new configuration dependency
 
 ### 4. **Prepare for AI Integration (Future Work)**
 
@@ -403,36 +507,12 @@ src/
 
 1. ✅ Update documentation and CLI help.
 2. ✅ Add or improve CLI commands for configuration management.
-3. Implement data path integration:
-   - Update NodeStorage to use ConfigManager
-   - Add data path change handling
-   - Add data migration support
+3. ✅ Implement data path integration:
+   - ✅ Update NodeStorage to use ConfigManager
+   - ✅ Add data path change handling
+   - ✅ Add data migration support
 4. Add user-friendly error messages and validation for configuration changes.
 5. (Optional) Refactor or review code for maintainability.
-
-## Project Status Board
-
-- [x] Update README with current features and usage
-- [x] Update CLI help text and descriptions
-- [x] Add configuration management commands
-- [ ] Update NodeStorage to use ConfigManager
-- [ ] Add data path change handling
-- [ ] Add data migration support
-- [ ] Add user-friendly error messages
-- [ ] Add configuration validation
-- [ ] Add configuration migration support
-
-## Executor's Feedback or Assistance Requests
-
-The configuration management commands have been implemented with the following features:
-
-- View all configuration settings
-- View specific configuration setting
-- Set configuration values with validation
-- Special handling for data directory (ensures directory exists and is writable)
-- Clear error messages for invalid keys or values
-
-Next steps will focus on properly integrating the configured data path with the storage system. Would you like me to proceed with implementing the data path integration plan?
 
 ## Lessons
 

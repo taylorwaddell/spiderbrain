@@ -1,3 +1,5 @@
+import { NodeStorage, PathValidationError } from "../../core/storage.js";
+
 import { ConfigManager } from "../../core/config.js";
 import chalk from "chalk";
 import { promises as fs } from "fs";
@@ -60,18 +62,40 @@ export async function configCommand(
       // Special handling for dataDir
       if (key === "dataDir") {
         try {
-          // Ensure directory exists
-          await fs.mkdir(value, { recursive: true });
-          // Check if directory is writable
-          await fs.access(value, fs.constants.W_OK);
+          // First update the configuration
+          await configManager.setDataDir(value);
+
+          // Then initialize storage with the new path
+          const storage = new NodeStorage(configManager);
+          await storage.initialize();
+          await storage.load();
+
+          // Migrate data to new location
+          spinner.text = "Migrating data to new location...";
+          await storage.migrateData(value);
         } catch (error) {
-          spinner.fail(chalk.red(`Invalid or unwritable directory: ${value}`));
+          // If migration fails, revert the configuration
+          await configManager.setDataDir(config.dataDir);
+
+          if (error instanceof PathValidationError) {
+            spinner.fail(chalk.red(`Path validation failed: ${error.message}`));
+            console.error(chalk.red(`Path: ${error.path}`));
+          } else {
+            spinner.fail(
+              chalk.red(
+                `Failed to update data directory: ${
+                  error instanceof Error ? error.message : String(error)
+                }`
+              )
+            );
+          }
           process.exit(1);
         }
+      } else {
+        // For other keys, just update the configuration
+        await configManager.updateConfig({ [key]: value });
       }
 
-      // Update configuration
-      await configManager.updateConfig({ [key]: value });
       spinner.succeed(chalk.green(`Configuration updated: ${key} = ${value}`));
     }
   } catch (error) {

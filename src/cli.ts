@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { AIService } from "./ai/services/ai.js";
+import { ConfigManager } from "./core/config.js";
 import { Node } from "./core/types.js";
 import { NodeSearch } from "./core/search.js";
 import { NodeStorage } from "./core/storage.js";
@@ -11,6 +12,9 @@ import { promises as fs } from "fs";
 import { join } from "path";
 import ora from "ora";
 import { program } from "commander";
+
+// Initialize configuration
+const configManager = new ConfigManager();
 
 // Initialize AI service
 const aiService = new AIService({
@@ -36,8 +40,7 @@ const aiService = new AIService({
 });
 
 // Initialize storage and search
-const dataPath = join(process.cwd(), "data", "nodes.jsonl");
-const storage = new NodeStorage(dataPath, aiService);
+const storage = new NodeStorage(configManager, aiService);
 const search = new NodeSearch();
 
 // Initialize the program
@@ -48,12 +51,13 @@ program
   )
   .version("1.0.0");
 
-// Initialize AI service before any commands
+// Initialize services before any commands
 program.hook("preAction", async () => {
   try {
+    await configManager.initialize();
     await aiService.initialize();
   } catch (error) {
-    console.error(chalk.red("Failed to initialize AI service:"));
+    console.error(chalk.red("Failed to initialize services:"));
     if (error instanceof Error) {
       console.error(chalk.red(error.message));
     }
@@ -78,9 +82,6 @@ program
     async (content: string, options: { file?: string; title?: string }) => {
       const spinner = ora("Adding new node...").start();
       try {
-        // Ensure data directory exists
-        await fs.mkdir(join(process.cwd(), "data"), { recursive: true });
-
         // Initialize storage if needed
         await storage.initialize();
         await storage.load();
@@ -151,8 +152,6 @@ program
   .action(async (query: string, options: { limit?: string }) => {
     const spinner = ora("Searching...").start();
     try {
-      // Ensure data directory exists
-      await fs.mkdir(join(process.cwd(), "data"), { recursive: true });
       await storage.initialize();
       await storage.load();
 
