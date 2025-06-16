@@ -73,7 +73,7 @@ export class AIService {
       }
 
       if (this.config.enableLogging) {
-        this.logger.log("AI Service initialized successfully");
+        // this.logger.log("AI Service initialized successfully");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {

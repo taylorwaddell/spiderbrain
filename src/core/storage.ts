@@ -17,7 +17,10 @@ import { randomUUID } from "crypto";
  * Error thrown when path validation fails
  */
 export class PathValidationError extends Error {
-  constructor(message: string, public readonly path: string) {
+  constructor(
+    message: string,
+    public readonly path: string
+  ) {
     super(message);
     this.name = "PathValidationError";
   }

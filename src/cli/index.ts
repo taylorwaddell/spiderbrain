@@ -7,6 +7,7 @@ import { Command } from "commander";
 import { NodeManager } from "../core/manager.js";
 import { homedir } from "os";
 import { join } from "path";
+import { registerExportCommand } from "./commands/export.js";
 
 const program = new Command();
 
@@ -168,6 +169,9 @@ program
       process.exit(1);
     }
   });
+
+// Register export command
+registerExportCommand(program);
 
 // Parse command line arguments
 program.parse();

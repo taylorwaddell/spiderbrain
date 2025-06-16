@@ -1,77 +1,106 @@
-import { Node } from "../../core/types.js";
+import { Command } from "commander";
+import { ConfigManager } from "../../core/config.js";
+import { ExportFormat } from "../../core/export/types.js";
+import { ExportService } from "../../core/export/service.js";
 import { NodeStorage } from "../../core/storage.js";
 import chalk from "chalk";
-import fs from "fs/promises";
+import { promises as fs } from "fs";
+import { join } from "path";
 import ora from "ora";
-import path from "path";
 
 export async function exportCommand(
-  storage: NodeStorage,
-  options: { format: string; output?: string }
+  options: {
+    format: ExportFormat,
+    fields?: string;
+    delimiter?: string;
+    dateFormat?: string;
+    encoding?: string;
+    output?: string;
+  }
 ): Promise<void> {
-  const spinner = ora("Exporting knowledge base...").start();
+  const spinner = ora("Preparing export...").start();
+  const configManager = new ConfigManager();
+  const storage = new NodeStorage(configManager);
+  const exportService = new ExportService();
+
   try {
+    // Initialize storage
+    await configManager.initialize();
     await storage.initialize();
     await storage.load();
 
+    // Get all nodes
     const nodes = await storage.list();
-
     if (nodes.length === 0) {
-      spinner.succeed(chalk.yellow("No nodes to export."));
+      spinner.fail(chalk.yellow("No nodes found to export"));
       return;
     }
 
-    let output: string;
-    if (options.format.toLowerCase() === "json") {
-      output = JSON.stringify(nodes, null, 2);
-    } else if (options.format.toLowerCase() === "text") {
-      output = nodes
-        .map((node: Node) => {
-          const lines = [
-            chalk.green("---"),
-            chalk.bold("ID:"),
-            node.id,
-            chalk.bold("Timestamp:"),
-            new Date(node.timestamp).toISOString(),
-          ];
+    // Parse fields
+    const fields = options.fields?.split(",").map((f) => f.trim()) || undefined;
 
-          const title = node.metadata?.title;
-          if (title && typeof title === "string") {
-            lines.push(chalk.bold("Title:"), title);
-          }
+    // Prepare export options
+    const exportOptions = {
+      format: options.format,
+      fields,
+      delimiter: options.delimiter,
+      dateFormat: options.dateFormat,
+      encoding: options.encoding,
+      outputPath: options.output,
+    };
 
-          lines.push(chalk.bold("Content:"), node.raw_text);
+    console.log('exportOptions.formatexportOptions.formatexportOptions.formatexportOptions.format')
+    console.log(exportOptions.format) // always undefined
+    console.log('exportOptions.formatexportOptions.formatexportOptions.formatexportOptions.format')
 
-          if (node.tags && node.tags.length > 0) {
-            lines.push(chalk.bold("Tags:"), node.tags.join(", "));
-          }
+    // Export nodes
+    spinner.text = "Exporting nodes...";
+    const result =
+      exportOptions.format === "csv"
+        ? await exportService.exportToCSV(nodes, exportOptions)
+        : await exportService.exportToJSON(nodes, exportOptions);
 
-          const source = node.metadata?.source;
-          if (source && typeof source === "string") {
-            lines.push(chalk.bold("Source:"), source);
-          }
-
-          return lines.join("\n");
-        })
-        .join("\n\n");
+    if (result.success) {
+      spinner.succeed(
+        chalk.green(
+          `Successfully exported ${result.stats.exportedNodes} nodes to ${result.outputPath}`
+        )
+      );
     } else {
-      throw new Error(`Unsupported format: ${options.format}`);
-    }
-
-    if (options.output) {
-      await fs.writeFile(options.output, output, "utf-8");
-      spinner.succeed(chalk.green(`Exported to ${options.output}`));
-    } else {
-      console.log(output);
-      spinner.succeed(chalk.green("Export completed."));
+      spinner.fail(
+        chalk.red(
+          `Failed to export nodes: ${result.error?.message || "Unknown error"}`
+        )
+      );
     }
   } catch (error) {
-    spinner.fail(chalk.red("Export failed"));
-    if (error instanceof Error) {
-      console.error(chalk.red(error.message));
-    } else {
-      console.error(chalk.red("Unknown error occurred"));
-    }
-    throw error;
+    spinner.fail(
+      chalk.red(
+        `Export failed: ${error instanceof Error ? error.message : String(error)}`
+      )
+    );
   }
+}
+
+export function registerExportCommand(program: Command): void {
+  program
+    .command("export")
+    .description("Export nodes to CSV or JSON format")
+    .argument("<format>", "Export format (csv or json)")
+    .option(
+      "-f, --fields <fields>",
+      "Comma-separated list of fields to export (default: id,timestamp,raw_text,tags)"
+    )
+    .option("-d, --delimiter <delimiter>", "CSV delimiter (default: ,)", ",")
+    .option("--date-format <format>", "Date format (default: ISO 8601)")
+    .option(
+      "-e, --encoding <encoding>",
+      "File encoding (default: utf8)",
+      "utf8"
+    )
+    .option(
+      "-o, --output <path>",
+      "Output file path (default: export_<timestamp>.<format>)"
+    )
+    .action(exportCommand);
 }

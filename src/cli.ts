@@ -2,6 +2,7 @@
 
 import { AIService } from "./ai/services/ai.js";
 import { ConfigManager } from "./core/config.js";
+import { ExportFormat } from "./core/export/types.js";
 import { Node } from "./core/types.js";
 import { NodeSearch } from "./core/search.js";
 import { NodeStorage } from "./core/storage.js";
@@ -211,8 +212,8 @@ program
     "text"
   )
   .option("-o, --output <path>", "Output file path (default: stdout)")
-  .action(async (options: { format: string; output?: string }) => {
-    await exportCommand(storage, options);
+  .action(async (options: { format: ExportFormat; output?: string }) => {
+    await exportCommand(options);
   });
 
 // Config command
