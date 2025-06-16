@@ -43,13 +43,65 @@ const DEFAULT_VALIDATION_RULES: TagValidationRule[] = [
  */
 export class TagGenerator {
   private config: TagConfig;
-  private aiService: AIService;
+  private aiService: AIService | null;
   private logger: Console;
+  private initialized: boolean;
+  private isTestMode: boolean;
 
-  constructor(aiService: AIService, config: Partial<TagConfig> = {}) {
+  constructor(aiService: AIService | null, config: Partial<TagConfig> = {}) {
     this.aiService = aiService;
+    this.isTestMode = !aiService;
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.logger = console;
+    this.initialized = false;
+  }
+
+  /**
+   * Get the current configuration
+   */
+  getConfig(): TagConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Update the configuration
+   */
+  updateConfig(config: Partial<TagConfig>): void {
+    this.config = { ...this.config, ...config };
+  }
+
+  /**
+   * Initialize the tag generator
+   */
+  async initialize(): Promise<void> {
+    try {
+      if (!this.initialized) {
+        // In test mode, we don't need to check AI service
+        if (!this.isTestMode) {
+          if (!this.aiService) {
+            throw new TagError(
+              "AI service is required for tag generation",
+              "INITIALIZATION_ERROR"
+            );
+          }
+          // Ensure AI service is initialized
+          if (!this.aiService.getModel()) {
+            throw new TagError(
+              "AI service must be initialized before using tag generator",
+              "INITIALIZATION_ERROR"
+            );
+          }
+        }
+        this.initialized = true;
+        this.logger.log("Tag generator initialized successfully");
+      }
+    } catch (error) {
+      throw new TagError(
+        "Failed to initialize tag generator",
+        "INITIALIZATION_ERROR",
+        error
+      );
+    }
   }
 
   /**
@@ -57,11 +109,36 @@ export class TagGenerator {
    */
   async generateTags(options: TagOptions): Promise<TagResult> {
     const startTime = Date.now();
-    console.log("Generating tags with options:", this.aiService); // AI service is undefined here
-    const model = options.model || this.aiService.getModel();
-    const config = { ...this.config, ...options.config };
 
     try {
+      // Ensure generator is initialized
+      if (!this.initialized) {
+        await this.initialize();
+      }
+
+      // In test mode, return empty tags
+      if (this.isTestMode) {
+        return {
+          tags: [],
+          metadata: {
+            generationTime: Date.now() - startTime,
+            totalTags: 0,
+            filteredTags: 0,
+            model: "test",
+          },
+        };
+      }
+
+      // Get model from options or default
+      let model: AIModel;
+      try {
+        model = options.model || this.aiService!.getModel();
+      } catch (error) {
+        throw new TagError("Failed to get AI model", "MODEL_ERROR", error);
+      }
+
+      const config = { ...this.config, ...options.config };
+
       // Generate tags using AI model
       const response = await this.generateTagsWithModel(model, options);
 
@@ -84,6 +161,9 @@ export class TagGenerator {
         },
       };
     } catch (error) {
+      if (error instanceof TagError) {
+        throw error;
+      }
       throw new TagError("Failed to generate tags", "GENERATION_ERROR", error);
     }
   }
@@ -104,53 +184,29 @@ export class TagGenerator {
    * Build the prompt for tag generation
    */
   private buildPrompt(options: TagOptions): string {
-    const content = options.content || "text";
-    // return `Generate between 3 and 10 single-word, lowercase tags (no punctuation) for the following memory entry. Tags should aid future search—even by surfacing loose connections—and you may include tags that aren’t literally in the text. Return ONLY a comma-separated list of tags, with no extra text.
+    const content = options.content || "";
+    return `You are a tagging assistant. Given content, generate 3-10 single-word lowercase tags related to ONLY the content provided. Return ONLY the tags separated by commas, nothing else.
 
-    //   Memory Entry:
-    //   "${content}"`;
+Examples:
+Content: "iPhone 13 review" → iphone, phone, review, apple, mobile
+Content: "pizza recipe" → pizza, recipe, cooking, food, italian
 
-    //     return `
-    //     Example 1
-    // Content: "iphone 13 is objectively the best phone"
-    // Good Tags: iphone, smartphone, apple, mobile, review
-
-    // Example 2
-    // Content: "I found archived government maps at nationalarchives.gov"
-    // Good Tags: maps, historical, government, archives, free, national
-
-    // Now for the new content, generate 3–10 single-word, lowercase tags (no punctuation). Return ONLY a comma-separated list.
-
-    // Content:
-    // "${content}"`;
-    return `
-        You are a tagging assistant. Given content, generate 3-10 single-word lowercase tags related to ONLY the content provided. Return ONLY the tags separated by commas, nothing else.
-
-        Examples:
-        Content: "iPhone 13 review" → iphone, phone, review, apple, mobile
-        Content: "pizza recipe" → pizza, recipe, cooking, food, italian
-
-        User Content:
-        "${content}"`;
-
-    // return `You’re a memory-tagging assistant. Generate 3–10 single-word, lowercase tags (no punctuation) that will help me later find or relate to this memory entry—even via loose connections. Return ONLY a comma-separated list of tags.
-
-    // Content:
-    // "${content}"`;
+User Content:
+"${content}"`;
   }
 
   /**
    * Extract tags from the model response
    */
   private extractTags(response: string): string[] {
-    // Split by newlines and commas, then clean up each potential tag
-    const theRealDeal = response
-      .split(/[,\n]/)
+    // Split by commas and clean up each potential tag
+    return response
+      .split(",")
       .map((tag) => {
         // Remove any leading/trailing whitespace
         tag = tag.trim();
         // Remove any leading '#' or other special characters
-        tag = tag.replace(/^[#@!?]+/, "");
+        tag = tag.replace(/^[#@!$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/, "");
         // Remove any descriptive text (sentences)
         if (tag.includes(":")) {
           tag = tag.split(":").pop() || "";
@@ -168,8 +224,6 @@ export class TagGenerator {
           !tag.toLowerCase().includes("content")
         );
       });
-    console.log("🟨🟨🟨🟨 → theRealDeal", theRealDeal);
-    return theRealDeal;
   }
 
   /**
@@ -185,10 +239,14 @@ export class TagGenerator {
       // Validate tag
       for (const rule of validationRules) {
         if (!rule.validate(tag)) {
-          throw new TagError(rule.errorMessage, "VALIDATION_ERROR", {
-            tag,
-            rule: rule.name,
-          });
+          throw new TagError(
+            `Tag validation failed: ${rule.errorMessage}`,
+            "VALIDATION_ERROR",
+            {
+              tag,
+              rule: rule.name,
+            }
+          );
         }
       }
 
@@ -214,7 +272,8 @@ export class TagGenerator {
    * Format a single tag
    */
   private formatTag(tag: string, config: TagConfig): string {
-    switch (config.format) {
+    const format = config.format || this.config.format;
+    switch (format) {
       case "hashtag":
         return `#${tag}`;
       case "plain":
@@ -222,63 +281,47 @@ export class TagGenerator {
       case "custom":
         if (!config.customFormat) {
           throw new TagError(
-            "Custom format string is required for 'custom' format",
-            "CONFIG_ERROR"
+            "Custom format is required for custom tag format",
+            "FORMAT_ERROR"
           );
         }
         return config.customFormat.replace("{tag}", tag);
       default:
-        throw new TagError(
-          `Unsupported tag format: ${config.format}`,
-          "CONFIG_ERROR"
-        );
+        throw new TagError(`Invalid tag format: ${format}`, "FORMAT_ERROR");
     }
   }
 
   /**
-   * Filter tags based on configuration
+   * Filter tags according to configuration
    */
   private filterTags(tags: Tag[], config: TagConfig): Tag[] {
-    let filtered = tags;
+    let filteredTags = [...tags];
 
-    // Filter by relevance
+    // Apply max tags limit
+    if (config.maxTags && filteredTags.length > config.maxTags) {
+      filteredTags = filteredTags.slice(0, config.maxTags);
+    }
+
+    // Apply relevance filter
     if (config.minRelevance) {
-      filtered = filtered.filter(
+      filteredTags = filteredTags.filter(
         (tag) => tag.relevance >= config.minRelevance!
       );
     }
 
-    // Filter by max tags
-    if (config.maxTags) {
-      filtered = filtered.slice(0, config.maxTags);
-    }
-
-    // Deduplicate
+    // Apply deduplication
     if (config.deduplicate) {
       const seen = new Set<string>();
-      filtered = filtered.filter((tag) => {
-        if (seen.has(tag.text)) {
+      filteredTags = filteredTags.filter((tag) => {
+        const normalized = tag.text.toLowerCase();
+        if (seen.has(normalized)) {
           return false;
         }
-        seen.add(tag.text);
+        seen.add(normalized);
         return true;
       });
     }
 
-    return filtered;
-  }
-
-  /**
-   * Update the generator configuration
-   */
-  updateConfig(config: Partial<TagConfig>): void {
-    this.config = { ...this.config, ...config };
-  }
-
-  /**
-   * Get the current configuration
-   */
-  getConfig(): TagConfig {
-    return { ...this.config };
+    return filteredTags;
   }
 }

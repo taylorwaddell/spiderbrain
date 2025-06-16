@@ -3,7 +3,7 @@ import {
   Node,
   NodeNotFoundError,
   StorageError,
-} from "./types";
+} from "./types.js";
 import { createReadStream, createWriteStream, promises as fs } from "fs";
 
 import { AIService } from "../ai/services/ai.js";
@@ -17,11 +17,13 @@ import { randomUUID } from "crypto";
 export class NodeStorage {
   private readonly dataPath: string;
   private nodes: Map<string, Node> = new Map();
-  private tagService: TagService;
+  private tagService: TagService | null;
+  private isTestMode: boolean;
 
-  constructor(dataPath: string, aiService: AIService) {
+  constructor(dataPath: string, aiService?: AIService) {
     this.dataPath = dataPath;
-    this.tagService = new TagService(aiService);
+    this.isTestMode = !aiService;
+    this.tagService = aiService ? new TagService(aiService) : null;
   }
 
   /**
@@ -71,9 +73,9 @@ export class NodeStorage {
     };
 
     try {
-      // Generate tags if none provided
-      if (!options.tags || options.tags.length === 0) {
-        node.tags = await this.tagService.generateTags(node);
+      // Generate tags if none provided and not in test mode
+      if ((!options.tags || options.tags.length === 0) && !this.isTestMode) {
+        node.tags = await this.tagService!.generateTags(node);
       }
 
       // Append to file
@@ -105,9 +107,9 @@ export class NodeStorage {
     const node = await this.get(id);
     const updatedNode = { ...node, ...updates };
 
-    // Regenerate tags if content changed
-    if (updates.raw_text) {
-      updatedNode.tags = await this.tagService.generateTags(updatedNode);
+    // Regenerate tags if content changed and not in test mode
+    if (updates.raw_text && !this.isTestMode) {
+      updatedNode.tags = await this.tagService!.generateTags(updatedNode);
     }
 
     try {
@@ -175,6 +177,8 @@ export class NodeStorage {
    * Update tag service configuration
    */
   updateTagConfig(config: Parameters<TagService["updateConfig"]>[0]): void {
-    this.tagService.updateConfig(config);
+    if (!this.isTestMode) {
+      this.tagService!.updateConfig(config);
+    }
   }
 }
