@@ -342,6 +342,7 @@ src/
 - AI tag generation is working great, and we're focusing on building out functionality rather than tests for now.
 - Documentation has been updated to reflect current state and features.
 - Configuration management commands have been added to the CLI.
+- Need to properly integrate configured data path with storage system.
 
 ## Next Up: Planner Recommendations
 
@@ -357,12 +358,43 @@ src/
   - ✅ Viewing and changing the model (when AI is re-enabled)
 - Add clear error messages and user prompts for configuration issues.
 
-### 3. **Prepare for AI Integration (Future Work)**
+### 3. **Data Path Integration Plan**
+
+- **Current Issue**: Storage system uses hardcoded data path instead of configured path
+- **Required Changes**:
+  1.  Modify NodeStorage to accept ConfigManager in constructor
+  2.  Update storage initialization to use configured data path
+  3.  Add data path change handling
+  4.  Add data migration support
+  5.  Update tests to reflect new configuration dependency
+
+**Detailed Steps**:
+
+1.  **Storage System Updates**
+
+    - Add ConfigManager dependency to NodeStorage
+    - Add method to handle data path changes
+    - Add data migration support
+    - Update error handling for path-related issues
+
+2.  **CLI Integration**
+
+    - Update storage initialization in CLI
+    - Add data path change validation
+    - Add data migration command
+    - Update help text for data path commands
+
+3.  **Testing Updates**
+    - Add tests for data path changes
+    - Add tests for data migration
+    - Update existing tests to use ConfigManager
+
+### 4. **Prepare for AI Integration (Future Work)**
 
 - Plan for reintroducing AI features behind feature flags or config toggles.
 - Add a stub or warning in the CLI for AI-dependent commands, letting users know it's "coming soon."
 
-### 4. **Optional: Refactor/Review**
+### 5. **Optional: Refactor/Review**
 
 - Review for any code that can be further modularized or simplified.
 - Add more comments and type annotations where helpful.
@@ -371,14 +403,21 @@ src/
 
 1. ✅ Update documentation and CLI help.
 2. ✅ Add or improve CLI commands for configuration management.
-3. Add user-friendly error messages and validation for configuration changes.
-4. (Optional) Refactor or review code for maintainability.
+3. Implement data path integration:
+   - Update NodeStorage to use ConfigManager
+   - Add data path change handling
+   - Add data migration support
+4. Add user-friendly error messages and validation for configuration changes.
+5. (Optional) Refactor or review code for maintainability.
 
 ## Project Status Board
 
 - [x] Update README with current features and usage
 - [x] Update CLI help text and descriptions
 - [x] Add configuration management commands
+- [ ] Update NodeStorage to use ConfigManager
+- [ ] Add data path change handling
+- [ ] Add data migration support
 - [ ] Add user-friendly error messages
 - [ ] Add configuration validation
 - [ ] Add configuration migration support
@@ -393,7 +432,7 @@ The configuration management commands have been implemented with the following f
 - Special handling for data directory (ensures directory exists and is writable)
 - Clear error messages for invalid keys or values
 
-Would you like me to proceed with adding more user-friendly error messages and validation for configuration changes?
+Next steps will focus on properly integrating the configured data path with the storage system. Would you like me to proceed with implementing the data path integration plan?
 
 ## Lessons
 
