@@ -341,6 +341,7 @@ src/
 - The codebase is now robust, with AI dependencies cleanly separated and testable logic for core features.
 - AI tag generation is working great, and we're focusing on building out functionality rather than tests for now.
 - Documentation has been updated to reflect current state and features.
+- Configuration management commands have been added to the CLI.
 
 ## Next Up: Planner Recommendations
 
@@ -349,11 +350,11 @@ src/
 - ✅ Update documentation to reflect the new configuration system, test mode, and how to run tests.
 - ✅ Ensure the CLI help and README are up to date.
 
-### 2. **User Experience Improvements**
+### 2. **User Experience Improvements** (In Progress)
 
-- Add CLI commands for:
-  - Viewing and changing the data directory
-  - Viewing and changing the model (when AI is re-enabled)
+- ✅ Add CLI commands for:
+  - ✅ Viewing and changing the data directory
+  - ✅ Viewing and changing the model (when AI is re-enabled)
 - Add clear error messages and user prompts for configuration issues.
 
 ### 3. **Prepare for AI Integration (Future Work)**
@@ -369,33 +370,30 @@ src/
 ## Immediate Next Steps
 
 1. ✅ Update documentation and CLI help.
-2. Add or improve CLI commands for configuration management.
-3. (Optional) Refactor or review code for maintainability.
+2. ✅ Add or improve CLI commands for configuration management.
+3. Add user-friendly error messages and validation for configuration changes.
+4. (Optional) Refactor or review code for maintainability.
 
 ## Project Status Board
 
 - [x] Update README with current features and usage
 - [x] Update CLI help text and descriptions
-- [ ] Add configuration management commands
+- [x] Add configuration management commands
 - [ ] Add user-friendly error messages
 - [ ] Add configuration validation
+- [ ] Add configuration migration support
 
 ## Executor's Feedback or Assistance Requests
 
-The Ollama integration implementation is complete and all tests are passing. The implementation includes:
+The configuration management commands have been implemented with the following features:
 
-- Full type safety with TypeScript
-- Configuration validation using Zod
-- Comprehensive error handling
-- Mocked tests for all functionality
+- View all configuration settings
+- View specific configuration setting
+- Set configuration values with validation
+- Special handling for data directory (ensures directory exists and is writable)
+- Clear error messages for invalid keys or values
 
-Next steps will focus on:
-
-1. Adding retry logic for transient failures in the Ollama integration
-2. Adding documentation for the Ollama integration
-3. Moving on to the AI Service implementation
-
-No assistance is currently needed.
+Would you like me to proceed with adding more user-friendly error messages and validation for configuration changes?
 
 ## Lessons
 

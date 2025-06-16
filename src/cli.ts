@@ -5,6 +5,7 @@ import { Node } from "./core/types.js";
 import { NodeSearch } from "./core/search.js";
 import { NodeStorage } from "./core/storage.js";
 import chalk from "chalk";
+import { configCommand } from "./cli/commands/config.js";
 import { exportCommand } from "./cli/commands/export.js";
 import { promises as fs } from "fs";
 import { join } from "path";
@@ -213,6 +214,18 @@ program
   .option("-o, --output <path>", "Output file path (default: stdout)")
   .action(async (options: { format: string; output?: string }) => {
     await exportCommand(storage, options);
+  });
+
+// Config command
+program
+  .command("config")
+  .alias("c")
+  .description("View or modify configuration settings")
+  .argument("<action>", "Action to perform (get or set)")
+  .argument("[key]", "Configuration key to get or set")
+  .argument("[value]", "Value to set (required for set action)")
+  .action(async (action: "get" | "set", key?: string, value?: string) => {
+    await configCommand(action, key, value);
   });
 
 // Parse command line arguments
