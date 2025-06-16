@@ -1,6 +1,7 @@
 import { NodeStorage, PathValidationError } from "../../core/storage.js";
 
 import { ConfigManager } from "../../core/config.js";
+import { ConfigValidationError } from "../../core/config/validation.js";
 import chalk from "chalk";
 import { promises as fs } from "fs";
 import { join } from "path";
@@ -59,9 +60,9 @@ export async function configCommand(
         process.exit(1);
       }
 
-      // Special handling for dataDir
-      if (key === "dataDir") {
-        try {
+      try {
+        // Special handling for dataDir
+        if (key === "dataDir") {
           // First update the configuration
           await configManager.setDataDir(value);
 
@@ -73,30 +74,41 @@ export async function configCommand(
           // Migrate data to new location
           spinner.text = "Migrating data to new location...";
           await storage.migrateData(value);
-        } catch (error) {
-          // If migration fails, revert the configuration
-          await configManager.setDataDir(config.dataDir);
-
-          if (error instanceof PathValidationError) {
-            spinner.fail(chalk.red(`Path validation failed: ${error.message}`));
-            console.error(chalk.red(`Path: ${error.path}`));
-          } else {
-            spinner.fail(
-              chalk.red(
-                `Failed to update data directory: ${
-                  error instanceof Error ? error.message : String(error)
-                }`
-              )
-            );
-          }
-          process.exit(1);
+        } else {
+          // For other keys, just update the configuration
+          await configManager.updateConfig({ [key]: value });
         }
-      } else {
-        // For other keys, just update the configuration
-        await configManager.updateConfig({ [key]: value });
-      }
 
-      spinner.succeed(chalk.green(`Configuration updated: ${key} = ${value}`));
+        spinner.succeed(
+          chalk.green(`Configuration updated: ${key} = ${value}`)
+        );
+      } catch (error) {
+        // If migration fails, revert the configuration
+        if (key === "dataDir") {
+          await configManager.setDataDir(config.dataDir);
+        }
+
+        if (error instanceof ConfigValidationError) {
+          spinner.fail(
+            chalk.red(`Configuration validation failed: ${error.message}`)
+          );
+          if (error.field) {
+            console.error(chalk.red(`Field: ${error.field}`));
+          }
+        } else if (error instanceof PathValidationError) {
+          spinner.fail(chalk.red(`Path validation failed: ${error.message}`));
+          console.error(chalk.red(`Path: ${error.path}`));
+        } else {
+          spinner.fail(
+            chalk.red(
+              `Failed to update configuration: ${
+                error instanceof Error ? error.message : String(error)
+              }`
+            )
+          );
+        }
+        process.exit(1);
+      }
     }
   } catch (error) {
     spinner.fail(chalk.red("Failed to manage configuration"));

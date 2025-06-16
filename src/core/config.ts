@@ -1,3 +1,8 @@
+import {
+  ConfigValidationError,
+  validateConfig,
+  validateConfigUpdate,
+} from "./config/validation.js";
 import { dirname, join } from "path";
 
 import { promises as fs } from "fs";
@@ -65,8 +70,15 @@ export class ConfigManager {
         const data = await fs.readFile(this.configPath, "utf-8");
         const loadedConfig = JSON.parse(data);
         this.config = { ...DEFAULT_CONFIG, ...loadedConfig };
+
+        // Validate loaded config
+        await validateConfig(this.config);
       } catch (error) {
-        // If config doesn't exist, create it with defaults
+        if (error instanceof ConfigValidationError) {
+          // If validation fails, use defaults
+          this.config = { ...DEFAULT_CONFIG };
+        }
+        // If config doesn't exist or is invalid, create it with defaults
         await this.save();
       }
     } catch (error) {
@@ -79,12 +91,18 @@ export class ConfigManager {
    */
   async save(): Promise<void> {
     try {
+      // Validate before saving
+      await validateConfig(this.config);
+
       await fs.writeFile(
         this.configPath,
         JSON.stringify(this.config, null, 2),
         "utf-8"
       );
     } catch (error) {
+      if (error instanceof ConfigValidationError) {
+        throw error;
+      }
       throw new Error(`Failed to save configuration: ${error}`);
     }
   }
@@ -100,8 +118,18 @@ export class ConfigManager {
    * Update the configuration
    */
   async updateConfig(updates: Partial<Config>): Promise<void> {
-    this.config = { ...this.config, ...updates };
-    await this.save();
+    try {
+      // Validate updates before applying
+      await validateConfigUpdate(updates);
+
+      this.config = { ...this.config, ...updates };
+      await this.save();
+    } catch (error) {
+      if (error instanceof ConfigValidationError) {
+        throw error;
+      }
+      throw new Error(`Failed to update configuration: ${error}`);
+    }
   }
 
   /**
